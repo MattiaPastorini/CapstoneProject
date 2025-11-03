@@ -14,3 +14,13 @@ background: linear-gradient(154deg,#ff0000,#000000);
     background-position: 0% 50%;
   }
 }
+/* Chrome, Edge, Safari */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+body {
+  scrollbar-width: none;
+}
+
