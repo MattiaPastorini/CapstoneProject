@@ -47,7 +47,11 @@ function NavBar() {
               </Nav.Link>
             </Nav>
             {/* Profilo desktop */}
-            <Nav.Link className="text-secondary link-light">
+            <Nav.Link
+              as={Link}
+              to="/login"
+              className="text-secondary link-light"
+            >
               <i
                 className="bi bi-person-fill"
                 style={{ fontSize: "1.7em" }}
@@ -55,7 +59,7 @@ function NavBar() {
             </Nav.Link>
             {/* Profilo mobile/tablet */}
             <div className="d-flex d-lg-none align-items-center ms-auto">
-              <Nav.Link>
+              <Nav.Link as={Link} to="/login">
                 <i
                   className="bi bi-person-fill"
                   style={{ fontSize: "1.8em" }}

@@ -8,17 +8,25 @@ import Regolamento from "./Components/Regolamento";
 import NewsPage from "./Components/News/NewsPage";
 import HomePage from "./Components/HomePage";
 import Footer from "./Components/Footer";
+import Login from "./Components/Login/Register/Login";
+import Register from "./Components/Login/Register";
 
 function App() {
   return (
     <Router>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/regolamento" element={<Regolamento />} />
-        <Route path="/news" element={<NewsPage />} />
-      </Routes>
-      <Footer />
+      <div className="d-flex flex-column min-vh-100">
+        <NavBar />
+        <div className="flex-grow-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/regolamento" element={<Regolamento />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </div>
+        <Footer />
+      </div>
     </Router>
   );
 }
