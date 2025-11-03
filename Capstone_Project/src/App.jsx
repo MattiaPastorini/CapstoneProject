@@ -7,6 +7,7 @@ import NavBar from "./Components/NavBar";
 import Regolamento from "./Components/Regolamento";
 import NewsPage from "./Components/News/NewsPage";
 import HomePage from "./Components/HomePage";
+import Footer from "./Components/Footer";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/regolamento" element={<Regolamento />} />
         <Route path="/news" element={<NewsPage />} />
       </Routes>
+      <Footer />
     </Router>
   );
 }
