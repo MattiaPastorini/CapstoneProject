@@ -12,7 +12,11 @@ function App() {
   return (
     <Router>
       <NavBar />
-      <Routes></Routes>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/regolamento" element={<Regolamento />} />
+        <Route path="/news" element={<NewsPage />} />
+      </Routes>
     </Router>
   );
 }
