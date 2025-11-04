@@ -14,14 +14,15 @@ function Login() {
   return (
     <Container className=" d-flex justify-content-center align-items-center my-5">
       <Card
-        className="bg-dark text-white p-4 w-100"
+        className="bg-dark text-white px-5 pt-4 pb-3 w-100 rounded-5"
         style={{ maxWidth: "450px" }}
       >
-        <h4 className="text-center mb-4">Accedi</h4>
+        <h4 className="text-center mb-3">Accedi</h4>
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              className=" rounded-4"
               type="email"
               placeholder="Inserisci la tua email"
               value={email}
@@ -33,6 +34,7 @@ function Login() {
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
             <Form.Control
+              className=" rounded-4"
               type="password"
               placeholder="Inserisci la tua password"
               value={password}
@@ -40,11 +42,12 @@ function Login() {
               required
             />
           </Form.Group>
-
-          <Button variant="light" type="submit" className="w-100">
-            Accedi
-          </Button>
-          <div className="text-center mt-2">
+          <div className=" text-center ">
+            <Button variant="light" type="submit" className="w-50 rounded-4">
+              Accedi
+            </Button>
+          </div>
+          <div className="text-center mt-2 ">
             <a href="/register">Non sei ancora registrato?</a>
           </div>
         </Form>

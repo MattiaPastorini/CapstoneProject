@@ -21,14 +21,15 @@ function Register() {
   return (
     <Container className="d-flex justify-content-center align-items-center my-5">
       <Card
-        className="bg-dark text-white p-4 w-100"
+        className="bg-dark text-white px-5 pt-4 pb-3 w-100 rounded-5"
         style={{ maxWidth: "400px" }}
       >
-        <h4 className="text-center mb-4">Registrati</h4>
+        <h4 className="text-center mb-3">Registrati</h4>
         <Form onSubmit={handleRegister}>
           <Form.Group className="mb-3">
             <Form.Label>Nome</Form.Label>
             <Form.Control
+              className=" rounded-4"
               type="text"
               name="nome"
               placeholder="Inserisci il tuo nome"
@@ -41,6 +42,7 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              className=" rounded-4"
               type="email"
               name="email"
               placeholder="Inserisci la tua email"
@@ -53,6 +55,7 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
             <Form.Control
+              className=" rounded-4"
               type="password"
               name="password"
               placeholder="Crea una password"
@@ -61,10 +64,11 @@ function Register() {
               required
             />
           </Form.Group>
-
-          <Button variant="light" type="submit" className="w-100">
-            Registrati
-          </Button>
+          <div className=" text-center mt-4 mb-3">
+            <Button variant="light" type="submit" className="w-50 rounded-4">
+              Registrati
+            </Button>
+          </div>
           <div className="text-center mt-2">
             <a href="login">Hai già un account?</a>
           </div>

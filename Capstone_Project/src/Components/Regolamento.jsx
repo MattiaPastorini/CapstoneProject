@@ -28,9 +28,9 @@ import Ocon from "./PNG/Ocon.png";
 
 function Regolamento() {
   return (
-    <div className="container py-5 text-center">
-      <h1 className=" text-light">REGOLAMENTO</h1>
-      <Row className="g-4 mb-5 d-flex justify-content-between">
+    <div className="container py-4 text-center">
+      <h1 className=" text-light mb-4">REGOLAMENTO</h1>
+      <Row className="g-4 mb-4 d-flex justify-content-between">
         {/* CARD 1 */}
         <Col xs={12} sm={6} lg={3}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
@@ -135,7 +135,7 @@ function Regolamento() {
       </Row>
       {/* FASCE PILOTI */}
       <Row className="g-4 mb-5">
-        <h2 className=" text-light">FASCE PILOTI</h2>
+        <h2 className=" text-light mt-3">FASCE PILOTI</h2>
         {/* CARD 4 */}
         <Col xs={12} sm={12} lg={12}>
           <Card className="h-100 shadow-sm rounded-4 bg-dark text-light">

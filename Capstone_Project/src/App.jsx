@@ -8,7 +8,7 @@ import Regolamento from "./Components/Regolamento";
 import NewsPage from "./Components/News/NewsPage";
 import HomePage from "./Components/HomePage";
 import Footer from "./Components/Footer";
-import Login from "./Components/Login/Register/Login";
+import Login from "./Components/Login/Login";
 import Register from "./Components/Login/Register";
 
 function App() {

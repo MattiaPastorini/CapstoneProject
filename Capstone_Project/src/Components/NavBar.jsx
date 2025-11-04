@@ -9,7 +9,12 @@ function NavBar() {
   return (
     <>
       {/* NAVBAR SUPERIORE */}
-      <Navbar bg="dark" variant="dark" style={{ height: "60px" }}>
+      <Navbar
+        bg="dark"
+        variant="dark"
+        style={{ height: "60px" }}
+        className="sticky-top"
+      >
         <Container fluid className="px-3">
           {/* Logo */}
           <Navbar.Brand as={Link} to="/">
@@ -70,7 +75,7 @@ function NavBar() {
 
           <div className="d-flex d-lg-none ms-auto align-items-center">
             <Nav className="ms-auto">
-              <Nav.Link>
+              <Nav.Link as={Link} to="/login">
                 <i
                   className="bi bi-person-fill"
                   style={{ fontSize: "1.8em" }}

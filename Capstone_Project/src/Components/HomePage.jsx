@@ -6,7 +6,7 @@ function HomePage() {
   return (
     <div className="container py-5 text-center">
       <Row className="g-4 mb-5">
-        {/* CARD 1 */}
+        {/* Card Classifica Piloti*/}
         <Col xs={12} sm={12} lg={3}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
@@ -19,7 +19,7 @@ function HomePage() {
           </Card>
         </Col>
 
-        {/* CARD 2 */}
+        {/* Card Classifica Fanta */}
         <Col xs={12} sm={12} lg={6}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
@@ -32,7 +32,7 @@ function HomePage() {
           </Card>
         </Col>
 
-        {/* CARD 3 */}
+        {/* Card Classifica Costruttori */}
         <Col xs={12} sm={12} lg={3}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
@@ -46,7 +46,7 @@ function HomePage() {
         </Col>
       </Row>
 
-      {/* SEZIONE NOTIZIE */}
+      {/* Ultime 6 notizie */}
       <NewsHomePage />
     </div>
   );
