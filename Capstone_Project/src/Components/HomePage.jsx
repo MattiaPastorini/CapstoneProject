@@ -11,7 +11,7 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/Team"
+              to="/CPiloti"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Piloti</h2>
@@ -24,7 +24,7 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/Card2"
+              to="/CFanta"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Fanta</h2>
@@ -37,7 +37,7 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/Card3"
+              to="/CCostruttori"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Costruttori</h2>
