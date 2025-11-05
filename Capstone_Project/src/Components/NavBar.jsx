@@ -31,7 +31,11 @@ function NavBar() {
                 <i className="bi bi-people me-1"></i>Team
               </Nav.Link>
 
-              <Nav.Link className="text-secondary link-light">
+              <Nav.Link
+                as={Link}
+                to="/classifiche"
+                className="text-secondary link-light"
+              >
                 <i className="bi bi-trophy me-1"></i>Classifica
               </Nav.Link>
               <Nav.Link

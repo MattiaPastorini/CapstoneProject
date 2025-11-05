@@ -10,6 +10,7 @@ import HomePage from "./Components/HomePage";
 import Footer from "./Components/Footer";
 import Login from "./Components/Login/Login";
 import Register from "./Components/Login/Register";
+import Classifica from "./Classifiche/Classifica";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <div className="flex-grow-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/classifiche" element={<Classifica />} />
             <Route path="/regolamento" element={<Regolamento />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/login" element={<Login />} />
