@@ -4,11 +4,29 @@ import { Container, Card, Form, Button } from "react-bootstrap";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: chiamata al backend
-    console.log("Login:", { email, password });
+
+    try {
+      const response = await fetch("http://localhost:3002/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.text();
+
+      if (result === "ok") {
+        setMessage("Login riuscito!");
+      } else {
+        setMessage("Email o password errati.");
+      }
+    } catch (error) {
+      setMessage("Errore di connessione al server.", error);
+    }
   };
 
   return (
@@ -51,6 +69,11 @@ function Login() {
             <a href="/register">Non sei ancora registrato?</a>
           </div>
         </Form>
+        {message && (
+          <div className="mt-3 text-center">
+            <span>{message}</span>
+          </div>
+        )}
       </Card>
     </Container>
   );

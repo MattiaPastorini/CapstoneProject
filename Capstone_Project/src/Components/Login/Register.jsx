@@ -3,10 +3,11 @@ import { Container, Card, Form, Button } from "react-bootstrap";
 
 function Register() {
   const [formData, setFormData] = useState({
-    nome: "",
+    username: "",
     email: "",
     password: "",
   });
+  const [message, setMessage] = useState(""); // Stato per feedback utente
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -14,8 +15,26 @@ function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    // TODO: chiamata al backend
-    console.log("Registrazione:", formData);
+    try {
+      const response = await fetch("http://localhost:3002/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
+        setFormData({ nome: "", email: "", password: "" }); // reset campi
+      } else {
+        setMessage(
+          "Registrazione fallita. Email già registrata o dati errati."
+        );
+      }
+    } catch (error) {
+      setMessage("Errore di connessione al server.", error);
+    }
   };
 
   return (
@@ -27,7 +46,7 @@ function Register() {
         <h4 className="text-center mb-3">Registrati</h4>
         <Form onSubmit={handleRegister}>
           <Form.Group className="mb-3">
-            <Form.Label>Nome</Form.Label>
+            <Form.Label>Username</Form.Label>
             <Form.Control
               className=" rounded-4"
               type="text"
@@ -73,6 +92,11 @@ function Register() {
             <a href="login">Hai già un account?</a>
           </div>
         </Form>
+        {message && (
+          <div className="mt-3 text-center">
+            <span>{message}</span>
+          </div>
+        )}
       </Card>
     </Container>
   );

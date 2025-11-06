@@ -10,7 +10,8 @@ import HomePage from "./Components/HomePage";
 import Footer from "./Components/Footer";
 import Login from "./Components/Login/Login";
 import Register from "./Components/Login/Register";
-import Classifica from "./Classifiche/Classifica";
+import Classifica from "./Components/Classifiche/Classifica";
+import Team from "./Components/Team/Team";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/classifiche" element={<Classifica />} />
+            <Route path="/team" element={<Team />} />
             <Route path="/regolamento" element={<Regolamento />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/login" element={<Login />} />

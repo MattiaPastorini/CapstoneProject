@@ -11,10 +11,32 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/CPiloti"
+              to="/classifiche"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Piloti</h2>
+              <ul className=" list-unstyled">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+              </ul>
             </Card.Body>
           </Card>
         </Col>
@@ -24,7 +46,7 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/CFanta"
+              to="/team"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Fanta</h2>
@@ -37,10 +59,22 @@ function HomePage() {
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body
               as={Link}
-              to="/CCostruttori"
+              to="/classifiche"
               className="bg-dark text-light text-decoration-none rounded-4"
             >
               <h2>Classifica Costruttori</h2>
+              <ul className=" list-unstyled">
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+                <li></li>
+              </ul>
             </Card.Body>
           </Card>
         </Col>

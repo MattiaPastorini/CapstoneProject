@@ -27,7 +27,11 @@ function NavBar() {
 
           <div className="d-none d-lg-flex flex-grow-1 align-items-center">
             <Nav className="me-auto">
-              <Nav.Link className="text-secondary link-light">
+              <Nav.Link
+                as={Link}
+                to="/team"
+                className="text-secondary link-light"
+              >
                 <i className="bi bi-people me-1"></i>Team
               </Nav.Link>
 
