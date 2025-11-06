@@ -1,5 +1,6 @@
 package mattiapastorini.CapStone_FantaF1.Controller;
 
+<<<<<<< HEAD
 import mattiapastorini.CapStone_FantaF1.Entities.User;
 import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,4 +27,7 @@ public class AuthController {
         }
         return "ko";
     }
+=======
+public class AuthController {
+>>>>>>> main
 }
