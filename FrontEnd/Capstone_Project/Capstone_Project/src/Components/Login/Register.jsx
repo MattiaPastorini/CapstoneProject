@@ -29,7 +29,7 @@ function Register() {
 
       if (response.ok) {
         setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
-        setFormData({ nome: "", email: "", password: "" }); // reset campi
+        setFormData({ username: "", email: "", password: "" }); // reset campi
         setTimeout(() => navigate("/login"), 1500); // Redirect dopo 1.5 sec
       } else {
         setMessage(
