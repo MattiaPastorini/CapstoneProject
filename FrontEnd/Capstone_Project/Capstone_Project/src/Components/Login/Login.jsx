@@ -30,7 +30,7 @@ function Login() {
   };
 
   return (
-    <Container className=" d-flex justify-content-center align-items-center my-5">
+    <Container className=" d-flex justify-content-center align-items-center mt-5 mb-4">
       <Card
         className="bg-dark text-white px-5 pt-4 pb-3 w-100 rounded-5"
         style={{ maxWidth: "450px" }}

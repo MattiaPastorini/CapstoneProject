@@ -6,7 +6,7 @@ import "../App.css";
 function Footer() {
   return (
     <footer
-      className="bg-dark text-light pb-3 pt-4 mt-3"
+      className="bg-dark text-light pb-3 pt-4 mt-4"
       style={{ borderTop: "1px solid #444" }}
     >
       <Container>
