@@ -4,9 +4,11 @@ import { useNavigate } from "react-router-dom";
 
 function Register() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: "",
+    nome: "",
+    surname: "",
     email: "",
     password: "",
   });
@@ -24,13 +26,14 @@ function Register() {
         headers: {
           "Content-Type": "application/json",
         },
+        // NB: Correggi backend se vuole "name" invece di "nome"
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
         setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
-        setFormData({ username: "", email: "", password: "" }); // reset campi
-        setTimeout(() => navigate("/login"), 1500); // Redirect dopo 1.5 sec
+        setFormData({ nome: "", surname: "", email: "", password: "" });
+        setTimeout(() => navigate("/login"), 1500);
       } else {
         setMessage(
           "Registrazione fallita. Email già registrata o dati errati."
@@ -52,10 +55,10 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>Username</Form.Label>
             <Form.Control
-              className=" rounded-4"
+              className="rounded-4"
               type="text"
               name="nome"
-              placeholder="Inserisci il tuo nome"
+              placeholder="Username..."
               value={formData.nome}
               onChange={handleChange}
               required
@@ -65,10 +68,10 @@ function Register() {
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
-              className=" rounded-4"
+              className="rounded-4"
               type="email"
               name="email"
-              placeholder="Inserisci la tua email"
+              placeholder="Email..."
               value={formData.email}
               onChange={handleChange}
               required
@@ -77,23 +80,41 @@ function Register() {
 
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
-            <Form.Control
-              className=" rounded-4"
-              type="password"
-              name="password"
-              placeholder="Crea una password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <Form.Control
+                className="rounded-4"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password..."
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <Button
+                variant="link"
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: "10px",
+                  transform: "translateY(-50%)",
+                  color: "#aaa",
+                  textDecoration: "none",
+                }}
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? "Nascondi" : "Mostra"}
+              </Button>
+            </div>
           </Form.Group>
-          <div className=" text-center mt-4 mb-3">
+          <div className="text-center mt-4 mb-3">
             <Button variant="light" type="submit" className="w-50 rounded-4">
               Registrati
             </Button>
           </div>
           <div className="text-center mt-2">
-            <a href="login">Hai già un account?</a>
+            <a href="/login">Hai già un account?</a>
           </div>
         </Form>
         {message && (

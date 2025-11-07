@@ -7,10 +7,10 @@ function Login({ setIsAuthenticated }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
       const response = await fetch("http://localhost:3002/api/auth/login", {
         method: "POST",
@@ -42,11 +42,11 @@ function Login({ setIsAuthenticated }) {
         <h4 className="text-center mb-3">Accedi</h4>
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">
-            <Form.Label>Email</Form.Label>
+            <Form.Label>Email/Username</Form.Label>
             <Form.Control
               className=" rounded-4"
-              type="email"
-              placeholder="Inserisci la tua email"
+              type="text"
+              placeholder="Email/Username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -55,14 +55,32 @@ function Login({ setIsAuthenticated }) {
 
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
-            <Form.Control
-              className=" rounded-4"
-              type="password"
-              placeholder="Inserisci la tua password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <Form.Control
+                className="rounded-4"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Button
+                variant="link"
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: "10px",
+                  transform: "translateY(-50%)",
+                  color: "#aaa",
+                  textDecoration: "none",
+                }}
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+              >
+                {showPassword ? "Nascondi" : "Mostra"}
+              </Button>
+            </div>
           </Form.Group>
           <div className=" text-center ">
             <Button variant="light" type="submit" className="w-50 rounded-4">
