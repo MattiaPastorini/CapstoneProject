@@ -1,4 +1,12 @@
 package mattiapastorini.CapStone_FantaF1.Repositories;
 
-public interface LegaRepository {
+import mattiapastorini.CapStone_FantaF1.Entities.Lega;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface LegaRepository extends JpaRepository<Lega, Long> {
+    Optional<Lega> findByCodiceInvito(String codiceInvito);
 }

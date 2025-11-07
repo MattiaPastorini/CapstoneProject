@@ -1,4 +1,71 @@
 package mattiapastorini.CapStone_FantaF1.Services;
 
-public class LegaService {
+import mattiapastorini.CapStone_FantaF1.Entities.*;
+import mattiapastorini.CapStone_FantaF1.Repositories.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.Optional;
+
+public class FantaService {
+
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private LegaRepository legaRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // Crea squadra
+    public Team creazioneTeam(String name, Long presidentId) {
+        User president = userRepository.findById(presidentId).orElseThrow();
+        Team team = new Team();
+        team.setName(name);
+        team.setPresident(president);
+        return teamRepository.save(team);
+    }
+
+    // Crea lega
+    public Lega creazioneLega(String name, Long presidentId) {
+        User president = userRepository.findById(presidentId).orElseThrow();
+        Lega lega = new Lega();
+        lega.setName(name);
+        lega.setPresident(president);
+        lega.setCodiceInvito(generateRandomCode());
+        lega.setMembers(new HashSet<>());
+        lega.getMembers().add(president); // president è già dentro
+        return legaRepository.save(lega);
+    }
+
+    // Invita (aggiungi membro per email/username)
+    public boolean invitoAllaLega(Long legaId, String emailOrUsername) {
+        Lega lega = legaRepository.findById(legaId).orElseThrow();
+        Optional<User> friend = emailOrUsername.contains("@")
+                ? userRepository.findByEmail(emailOrUsername)
+                : userRepository.findByName(emailOrUsername);
+
+        if (friend.isPresent()) {
+            // Aggiungi l'amico se non già dentro
+            return lega.getMembers().add(friend.get());
+        }
+        return false;
+    }
+
+    // Join tramite codice invito
+    public boolean partecipazioneAllaLega(String code, Long userId) {
+        Optional<Lega> optLega = legaRepository.findByCodiceInvito(code);
+        if (optLega.isPresent()) {
+            Lega lega = optLega.get();
+            User user = userRepository.findById(userId).orElseThrow();
+            return lega.getMembers().add(user);
+        }
+        return false;
+    }
+
+    // Genera codice invito (esempio base)
+    private String generateRandomCode() {
+        return java.util.UUID.randomUUID().toString().substring(0, 8);
+    }
 }
