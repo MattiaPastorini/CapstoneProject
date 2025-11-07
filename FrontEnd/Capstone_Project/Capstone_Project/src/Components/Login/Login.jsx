@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Container, Card, Form, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
+function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,6 +23,8 @@ function Login() {
 
       if (result === "ok") {
         setMessage("Login riuscito!");
+        setIsAuthenticated(true);
+        navigate("/team");
       } else {
         setMessage("Email o password errati.");
       }

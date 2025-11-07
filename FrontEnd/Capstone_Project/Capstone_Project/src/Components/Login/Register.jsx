@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Container, Card, Form, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -27,6 +30,7 @@ function Register() {
       if (response.ok) {
         setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
         setFormData({ nome: "", email: "", password: "" }); // reset campi
+        setTimeout(() => navigate("/login"), 1500); // Redirect dopo 1.5 sec
       } else {
         setMessage(
           "Registrazione fallita. Email già registrata o dati errati."
