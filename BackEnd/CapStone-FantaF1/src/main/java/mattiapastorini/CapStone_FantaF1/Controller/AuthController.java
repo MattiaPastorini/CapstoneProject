@@ -1,9 +1,9 @@
 package mattiapastorini.CapStone_FantaF1.Controller;
 
-<<<<<<< HEAD
-import mattiapastorini.CapStone_FantaF1.Entities.User;
-import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
+import mattiapastorini.CapStone_FantaF1.Payloads.NewUserDTO;
+import mattiapastorini.CapStone_FantaF1.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -12,22 +12,28 @@ import java.util.Optional;
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
+    // Registrazione
     @PostMapping("/register")
-    public User userRegister(@RequestBody User user) {
-        return userRepository.save(user);
+    public ResponseEntity<?> register(@RequestBody NewUserDTO newUserDto) {
+        if (userService.register(newUserDto)) {
+            // OK, utente creato
+            return ResponseEntity.ok("ok");
+        } else {
+            // Email già registrata
+            return ResponseEntity.status(409).body("Email in uso");
+        }
     }
 
+    // Login
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-        Optional<User> dataBaseUser = userRepository.findByEmail(user.getEmail());
-        if (dataBaseUser.isPresent() && dataBaseUser.get().getPassword().equals(user.getPassword())) {
-            return "ok";
+    public ResponseEntity<?> login(@RequestBody NewUserDTO newUserDto) {
+        // Qui puoi farti inviare solo email e password se vuoi
+        if (userService.login(newUserDto.email(), newUserDto.password())) {
+            return ResponseEntity.ok("ok");
+        } else {
+            return ResponseEntity.status(401).body("Credenziali errate");
         }
-        return "ko";
     }
-=======
-public class AuthController {
->>>>>>> main
 }
