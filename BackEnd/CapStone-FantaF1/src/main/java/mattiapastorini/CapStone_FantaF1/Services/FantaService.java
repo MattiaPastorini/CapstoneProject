@@ -3,10 +3,12 @@ package mattiapastorini.CapStone_FantaF1.Services;
 import mattiapastorini.CapStone_FantaF1.Entities.*;
 import mattiapastorini.CapStone_FantaF1.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Optional;
 
+@Service
 public class FantaService {
 
     @Autowired
@@ -40,11 +42,11 @@ public class FantaService {
     }
 
     // Invita (aggiungi membro per email/username)
-    public boolean invitoAllaLega(Long legaId, String emailOrUsername) {
+    public boolean invitoAllaLega(Long legaId, String username, String email ) {
         Lega lega = legaRepository.findById(legaId).orElseThrow();
-        Optional<User> friend = emailOrUsername.contains("@")
-                ? userRepository.findByEmail(emailOrUsername)
-                : userRepository.findByName(emailOrUsername);
+        Optional<User> friend = email.contains("@")
+                ? userRepository.findByEmail(email)
+                : userRepository.findByUsername(username);
 
         if (friend.isPresent()) {
             // Aggiungi l'amico se non già dentro

@@ -31,7 +31,7 @@ public class FantaController {
     // Invita un amico a una lega (per email o username)
     @PostMapping("/lega/invito")
     public ResponseEntity<?> invito(@RequestBody InvitoDTO invitoDTO) {
-        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.friendId());
+        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
         return ok ? ResponseEntity.ok("Invitato!") : ResponseEntity.status(404).body("Utente non trovato");
     }
 

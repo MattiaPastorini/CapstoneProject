@@ -7,6 +7,8 @@ import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service // Dice a Spring che questa è una classe di servizio (logica applicativa)
 public class UserService {
     @Autowired // Inietto automaticamente il repository
@@ -32,8 +34,9 @@ public class UserService {
     // Metodo per login
     public boolean login(String email, String password) {
         // Cerco l'utente per email
-        var utente = userRepository.findByEmail(email);
+        Optional<User> utente = userRepository.findByEmail(email);
         // Se trovato, controllo la password (in vero progetto confronta hash)
         return utente.isPresent() && utente.get().getPassword().equals(password);
     }
+
 }

@@ -7,7 +7,9 @@ import jakarta.validation.constraints.NotNull;
 public record InvitoDTO(
         @NotNull(message = "ID lega obbligatorio")
         Long legaId,
-        @NotBlank(message = "Serve username o email dell'amico")
-        String friendId
+        @NotBlank(message = "Serve username dell'amico")
+        String username,
+        @NotBlank(message = "Serve l'email dell'amico")
+        String email
 ) {
 }
