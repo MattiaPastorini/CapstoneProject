@@ -9,19 +9,25 @@ function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
+  // Funzione di login
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch("http://localhost:3002/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const result = await response.text();
 
-      if (result === "ok") {
+      // MODIFICA: prendo la risposta come JSON
+      const result = await response.json();
+
+      // Se il backend risponde con l'oggetto utente loggato
+      // esempio: {id: 5, email: "...", username: "..."}
+      if (result && result.id) {
+        // Salva l'id in localStorage per i futuri fetch!
+        localStorage.setItem("userId", result.id);
+
         setMessage("Login riuscito!");
         setIsAuthenticated(true);
         navigate("/team");
@@ -34,7 +40,7 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <Container className=" d-flex justify-content-center align-items-center mt-5 mb-4">
+    <Container className="d-flex justify-content-center align-items-center mt-5 mb-4">
       <Card
         className="bg-dark text-white px-5 pt-4 pb-3 w-100 rounded-5"
         style={{ maxWidth: "450px" }}
@@ -44,7 +50,7 @@ function Login({ setIsAuthenticated }) {
           <Form.Group className="mb-3">
             <Form.Label>Email/Username</Form.Label>
             <Form.Control
-              className=" rounded-4"
+              className="rounded-4"
               type="text"
               placeholder="Email/Username"
               value={email}
@@ -52,7 +58,6 @@ function Login({ setIsAuthenticated }) {
               required
             />
           </Form.Group>
-
           <Form.Group className="mb-3">
             <Form.Label>Password</Form.Label>
             <div style={{ position: "relative" }}>
@@ -82,7 +87,7 @@ function Login({ setIsAuthenticated }) {
               </Button>
             </div>
           </Form.Group>
-          <div className=" text-center ">
+          <div className="text-center ">
             <Button variant="light" type="submit" className="w-50 rounded-4">
               Accedi
             </Button>

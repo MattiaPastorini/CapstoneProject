@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,12 +21,20 @@ public class FantaService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PilotaRepository pilotaRepository;
+
     // Crea squadra
-    public Team creazioneTeam(String name, Long presidentId) {
+    public Team creazioneTeam(String name, Long presidentId, List<Long> pilotiId) {
         User president = userRepository.findById(presidentId).orElseThrow();
         Team team = new Team();
         team.setName(name);
         team.setPresident(president);
+
+        // Trova i piloti dal repository e aggiungili al team
+        List<Pilota> piloti = pilotaRepository.findAllById(pilotiId);
+        team.getPiloti().addAll(piloti);
+
         return teamRepository.save(team);
     }
 
@@ -42,7 +51,7 @@ public class FantaService {
     }
 
     // Invita (aggiungi membro per email/username)
-    public boolean invitoAllaLega(Long legaId, String username, String email ) {
+    public boolean invitoAllaLega(Long legaId, String username, String email) {
         Lega lega = legaRepository.findById(legaId).orElseThrow();
         Optional<User> friend = email.contains("@")
                 ? userRepository.findByEmail(email)
