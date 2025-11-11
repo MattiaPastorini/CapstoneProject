@@ -13,22 +13,49 @@ import { Link } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Lista piloti di esempio (puoi caricarla da API)
-const pilotiDisponibili = [
-  { id: 1, nome: "Leclerc" },
-  { id: 2, nome: "Hamilton" },
-  { id: 3, nome: "Verstappen" },
-  { id: 4, nome: "Norris" },
-  { id: 5, nome: "Sainz" },
-  { id: 6, nome: "Alonso" },
-  // ... aggiungi altri
+// Lista piloti per fascia
+const fascePiloti = [
+  {
+    fascia: "PRIMA FASCIA",
+    piloti: [
+      { id: 1, nome: "Max Verstappen" },
+      { id: 2, nome: "Yuki Tsunoda" },
+      { id: 3, nome: "Charles Leclerc" },
+      { id: 4, nome: "Lewis Hamilton" },
+      { id: 5, nome: "Lando Norris" },
+      { id: 6, nome: "Oscar Piastri" },
+      { id: 7, nome: "George Russell" },
+      { id: 8, nome: "Kimi Antonelli" },
+    ],
+  },
+  {
+    fascia: "SECONDA FASCIA",
+    piloti: [
+      { id: 9, nome: "Liam Lawson" },
+      { id: 10, nome: "Isack Hadjar" },
+      { id: 11, nome: "Carlos Sainz" },
+      { id: 12, nome: "Alexander Albon" },
+      { id: 13, nome: "Nico Hulkenberg" },
+      { id: 14, nome: "Gabriel Bortoleto" },
+    ],
+  },
+  {
+    fascia: "TERZA FASCIA",
+    piloti: [
+      { id: 15, nome: "Fernando Alonso" },
+      { id: 16, nome: "Lance Stroll" },
+      { id: 17, nome: "Pierre Gasly" },
+      { id: 18, nome: "Franco Colapinto" },
+      { id: 19, nome: "Oliver Bearman" },
+      { id: 20, nome: "Esteban Ocon" },
+    ],
+  },
 ];
 
-// Esempio per prendere l'id utente loggato (da localStorage)
+// Recupera id utente loggato (da localStorage)
 const getLoggedUserId = () => localStorage.getItem("userId");
 
 function Team() {
-  // Stato gestione UI e campi di input
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showLeagueForm, setShowLeagueForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -37,42 +64,40 @@ function Team() {
   const [leagueName, setLeagueName] = useState("");
   const [message, setMessage] = useState("");
 
-  // Stato per la selezione di massimo 3 piloti
-  const [pilotiSelezionati, setPilotiSelezionati] = useState([]);
+  // Stato: un pilota selezionato per ogni fascia [idFascia1, idFascia2, idFascia3]
+  const [pilotiSelezionati, setPilotiSelezionati] = useState([
+    null,
+    null,
+    null,
+  ]);
 
-  // Stato id lega creata, utile per invitare dopo creazione
   const [legaCreataId, setLegaCreataId] = useState(null);
-
-  // Stato campi invito giocatori
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
 
-  // Gestione selezione/deselezione piloti (massimo 3)
-  const onPilotaToggle = (id) => {
+  // Funzione seleziona pilota per una fascia
+  const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
     setPilotiSelezionati((prev) => {
-      if (prev.includes(id)) return prev.filter((pid) => pid !== id);
-      if (prev.length < 3) return [...prev, id];
-      return prev;
+      const nuovi = [...prev];
+      nuovi[fasciaIdx] = pilotaId;
+      return nuovi;
     });
   };
 
-  // Crea squadra (invia anche i 3 piloti selezionati)
+  // Crea la squadra con i 3 id selezionati, uno per fascia
   const handleCreateTeam = async (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
-    // Puoi validare lato frontend che siano esattamente 3!
-    if (pilotiSelezionati.length !== 3) {
-      setMessage("Seleziona esattamente 3 piloti.");
+    if (pilotiSelezionati.some((x) => x === null)) {
+      setMessage("Devi scegliere un pilota per ogni fascia!");
       return;
     }
-    // Prepara la chiamata
     const res = await fetch("http://localhost:3002/api/team/creazione", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: teamName,
         presidentId: loggedUserId,
-        // Backend: aggiungi supporto per lista piloti se serve!
         piloti: pilotiSelezionati,
       }),
     });
@@ -83,11 +108,11 @@ function Team() {
       setMessage("Errore nella creazione della squadra");
     }
     setTeamName("");
-    setPilotiSelezionati([]);
+    setPilotiSelezionati([null, null, null]);
     setShowTeamForm(false);
   };
 
-  // Crea lega, salva l'id restutito per poter invitare dopo
+  // Crea lega
   const handleCreateLeague = async (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
@@ -101,14 +126,14 @@ function Team() {
     });
     if (res.ok) {
       const createdLeague = await res.json();
-      setLegaCreataId(createdLeague.id); // ID della lega appena creata
+      setLegaCreataId(createdLeague.id);
       setMessage(
         "Lega creata: " +
           createdLeague.name +
           " | Codice invito: " +
           createdLeague.codiceInvito
       );
-      setShowInviteForm(true); // mostra form invito dopo creazione
+      setShowInviteForm(true);
     } else {
       setMessage("Errore nella creazione della lega");
       setLegaCreataId(null);
@@ -145,7 +170,7 @@ function Team() {
     <>
       <div className="container py-5 text-center">
         <Row className="g-4 mb-5">
-          {/* Colonna TEAM */}
+          {/* CARD SQUADRA */}
           <Col xs={12} sm={12} lg={5}>
             <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
               <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
@@ -158,13 +183,14 @@ function Team() {
                     <Button
                       variant="link"
                       onClick={() => setShowTeamForm((prev) => !prev)}
+                      disabled={!!teamName} // disabilitata se già esistente
                     >
                       <i className="bi bi-plus-lg text-light fs-3"></i>
                     </Button>
                   </OverlayTrigger>
                 </div>
-                {/* Form per creare la squadra con scelta piloti */}
-                {showTeamForm && (
+
+                {!teamName && showTeamForm && (
                   <Form onSubmit={handleCreateTeam} className="mt-3">
                     <InputGroup className="mb-3">
                       <Form.Control
@@ -174,40 +200,104 @@ function Team() {
                         onChange={(e) => setTeamName(e.target.value)}
                         required
                       />
-                      <Button type="submit" variant="success">
+                      <Button type="submit" variant="danger">
                         Crea
                       </Button>
                     </InputGroup>
-                    {/* Selezione piloti (fino a 3) */}
-                    <div className="mb-3">
-                      <p>Scegli 3 piloti:</p>
-                      {pilotiDisponibili.map((pilota) => (
-                        <Form.Check
-                          key={pilota.id}
-                          type="checkbox"
-                          inline
-                          label={pilota.nome}
-                          checked={pilotiSelezionati.includes(pilota.id)}
-                          onChange={() => onPilotaToggle(pilota.id)}
-                          disabled={
-                            !pilotiSelezionati.includes(pilota.id) &&
-                            pilotiSelezionati.length >= 3
-                          }
-                        />
+                    {/* Selezione piloti (radio) */}
+                    <div className="mb-3 d-flex flex-column">
+                      <p>
+                        <b>Scegli un pilota per ogni fascia:</b>
+                      </p>
+                      {fascePiloti.map((fasciaObj, fasciaIdx) => (
+                        <div
+                          key={fasciaObj.fascia}
+                          style={{ marginBottom: "8px" }}
+                        >
+                          <h6
+                            style={{
+                              fontWeight: "bold",
+                              marginBottom: "5px",
+                              color: "#ff2f2fff",
+                            }}
+                          >
+                            {fasciaObj.fascia}
+                          </h6>
+                          <div className=" d-flex flex-wrap justify-content-center">
+                            {fasciaObj.piloti.map((pilota) => (
+                              <Form.Check
+                                key={pilota.id}
+                                type="radio"
+                                name={`fascia-${fasciaIdx}`}
+                                label={pilota.nome}
+                                checked={
+                                  pilotiSelezionati[fasciaIdx] === pilota.id
+                                }
+                                onChange={() =>
+                                  onPilotaFasciaToggle(fasciaIdx, pilota.id)
+                                }
+                                style={{ minWidth: "170px" }}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </Form>
+                )}
+
+                {/* MOSTRA TEAM */}
+                {teamName && (
+                  <div className="mt-3">
+                    <h5 style={{ fontWeight: "bold", color: "#ffffffff" }}>
+                      {teamName}
+                    </h5>
+                    <h6
+                      className="mt-2"
+                      style={{ color: "#ffffffff", fontWeight: "bold" }}
+                    >
+                      Piloti scelti:
+                    </h6>
+                    {pilotiSelezionati.map((id, idx) => {
+                      const pilota = fascePiloti[idx].piloti.find(
+                        (p) => p.id === id
+                      );
+                      return (
+                        <div
+                          key={id}
+                          style={{ fontSize: "1em", marginBottom: "4px" }}
+                        >
+                          <span style={{ fontWeight: "bold" }}>
+                            {fascePiloti[idx].fascia}:
+                          </span>{" "}
+                          {pilota ? pilota.nome : "Non selezionato"}
+                        </div>
+                      );
+                    })}
+                    <Button
+                      variant="outline-danger"
+                      className="mt-3"
+                      onClick={() => {
+                        // Qui dovrai chiamare endpoint DELETE anche nel backend!
+                        setTeamName("");
+                        setPilotiSelezionati([null, null, null]);
+                        setShowTeamForm(false);
+                      }}
+                    >
+                      Elimina squadra
+                    </Button>
+                  </div>
                 )}
               </Card.Body>
             </Card>
           </Col>
 
-          {/* Colonna LEGA */}
+          {/* CARD LEGA */}
           <Col xs={12} sm={12} lg={7}>
             <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
               <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
                 <div className="d-flex justify-content-center align-items-center gap-2">
-                  <h2>Classifica Lega</h2>
+                  <h2>La mia lega</h2>
                   <OverlayTrigger
                     placement="top"
                     overlay={<Tooltip id="tooltip-league">Crea Lega</Tooltip>}
@@ -215,6 +305,7 @@ function Team() {
                     <Button
                       variant="link"
                       onClick={() => setShowLeagueForm((prev) => !prev)}
+                      disabled={!!leagueName} // disabilitata se creata
                     >
                       <i className="bi bi-plus-lg text-light fs-3"></i>
                     </Button>
@@ -225,7 +316,6 @@ function Team() {
                       <Tooltip id="tooltip-invita">Invita Giocatori</Tooltip>
                     }
                   >
-                    {/* Bottone per mostrare il form invito (solo se la lega è stata creata) */}
                     <Button
                       variant="link"
                       onClick={() => setShowInviteForm((prev) => !prev)}
@@ -235,8 +325,8 @@ function Team() {
                     </Button>
                   </OverlayTrigger>
                 </div>
-                {/* Form creazione lega */}
-                {showLeagueForm && (
+
+                {!leagueName && showLeagueForm && (
                   <Form onSubmit={handleCreateLeague} className="mt-3">
                     <InputGroup>
                       <Form.Control
@@ -246,13 +336,59 @@ function Team() {
                         onChange={(e) => setLeagueName(e.target.value)}
                         required
                       />
-                      <Button type="submit" variant="warning">
+                      <Button type="submit" variant="danger">
                         Crea
                       </Button>
                     </InputGroup>
                   </Form>
                 )}
-                {/* Form invito giocatori, appare solo se showInviteForm è true e la lega è stata creata */}
+
+                {/* MOSTRA LEGA */}
+                {leagueName && (
+                  <div className="mt-3">
+                    <h5 style={{ fontWeight: "bold", color: "#ffaa00" }}>
+                      {leagueName}
+                    </h5>
+                    {legaCreataId && (
+                      <div style={{ margin: "10px 0" }}>
+                        <span>
+                          Codice invito: <b>{legaCreataId}</b>
+                        </span>
+                      </div>
+                    )}
+                    {/* Bottoni uscita o eliminazione: */}
+                    {/* Aggiungi qui la logica per capire se l'utente è il creatore */}
+                    {getLoggedUserId() === "TUO_ID_CREATOR" ? (
+                      <Button
+                        variant="outline-danger"
+                        className="mt-3"
+                        onClick={() => {
+                          // Qui dovrai chiamare endpoint DELETE della lega!
+                          setLeagueName("");
+                          setLegaCreataId(null);
+                          setShowLeagueForm(false);
+                        }}
+                      >
+                        Elimina lega
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline-danger"
+                        className="mt-3"
+                        onClick={() => {
+                          // Endpoint uscita!
+                          setLeagueName("");
+                          setLegaCreataId(null);
+                          setShowLeagueForm(false);
+                        }}
+                      >
+                        Esci dalla lega
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Invita giocatore, solo se hai una lega */}
                 {showInviteForm && legaCreataId && (
                   <Form onSubmit={handleInvitePlayer} className="mt-3">
                     <InputGroup>
@@ -279,10 +415,11 @@ function Team() {
             </Card>
           </Col>
         </Row>
-        {/* Mostra messaggio di feedback sotto */}
+        {/* Messaggi di feedback */}
         {message && <div className="alert alert-info mt-3">{message}</div>}
       </div>
     </>
   );
 }
+
 export default Team;
