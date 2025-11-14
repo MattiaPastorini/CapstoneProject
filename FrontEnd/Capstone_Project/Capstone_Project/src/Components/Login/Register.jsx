@@ -7,8 +7,7 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    nome: "",
-    surname: "",
+    username: "",
     email: "",
     password: "",
   });
@@ -57,9 +56,9 @@ function Register() {
             <Form.Control
               className="rounded-4"
               type="text"
-              name="nome"
+              name="username"
               placeholder="Username..."
-              value={formData.nome}
+              value={formData.username}
               onChange={handleChange}
               required
             />

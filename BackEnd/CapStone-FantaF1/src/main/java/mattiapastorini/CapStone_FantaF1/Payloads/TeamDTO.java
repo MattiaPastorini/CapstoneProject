@@ -11,6 +11,8 @@ public record TeamDTO(
         @NotNull(message = "L'ID del presidente è obbligatorio")
         Long presidentId,
         @NotNull(message = "Almeno 3 piloti")
-        List<Long> piloti // lista id piloti
+        List<Long> piloti, // lista id piloti
+        @NotNull(message = "L'ID della lega è obbligatorio")
+        Long legaId
 ) {
 }

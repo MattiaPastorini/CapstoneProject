@@ -19,6 +19,10 @@ public class Team {
     private User president;   //presidente della squadra
 
     @ManyToMany
-    private Set<Pilota> piloti= new HashSet<>();
+    private Set<Pilota> piloti = new HashSet<>();
+
+    @ManyToOne
+    private Lega lega; // ogni Team appartiene a una lega
+
 
 }

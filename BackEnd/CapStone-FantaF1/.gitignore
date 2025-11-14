@@ -32,9 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-<<<<<<< HEAD
-### ENV ###
-=======
 ###env.properties###
 >>>>>>> main
 env.properties

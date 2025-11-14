@@ -1,5 +1,6 @@
 package mattiapastorini.CapStone_FantaF1.Controller;
 
+import mattiapastorini.CapStone_FantaF1.Payloads.LoginDTO;
 import mattiapastorini.CapStone_FantaF1.Payloads.NewUserDTO;
 import mattiapastorini.CapStone_FantaF1.Entities.User;
 import mattiapastorini.CapStone_FantaF1.Services.UserService;
@@ -29,12 +30,11 @@ public class AuthController {
         }
     }
 
-    // Login RESTITUISCE L'UTENTE!
+    // Login
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody NewUserDTO newUserDto) {
-        Optional<User> user = userRepository.findByEmail(newUserDto.email());
-        if (user.isPresent() && user.get().getPassword().equals(newUserDto.password())) {
-            // Qui restituisci l'intero oggetto utente (id, username, email, ...)
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDto) {
+        Optional<User> user = userRepository.findByEmail(loginDto.email());
+        if (user.isPresent() && user.get().getPassword().equals(loginDto.password())) {
             return ResponseEntity.ok(user.get());
         } else {
             return ResponseEntity.status(401).body("Credenziali errate");

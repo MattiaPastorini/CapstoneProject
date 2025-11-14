@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   Row,
@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Lista piloti per fascia
+// Lista piloti per fascia (statico, non serve modificarlo)
 const fascePiloti = [
   {
     fascia: "PRIMA FASCIA",
@@ -52,28 +52,66 @@ const fascePiloti = [
   },
 ];
 
-// Recupera id utente loggato (da localStorage)
+// Restituisce l'userId dal localStorage (ad es. lo metti quando loggi)
 const getLoggedUserId = () => localStorage.getItem("userId");
 
 function Team() {
+  // Stati di UI per mostrare/nascondere form e invito
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showLeagueForm, setShowLeagueForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
 
+  // Stati per gestione input dei form
   const [teamName, setTeamName] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [message, setMessage] = useState("");
 
-  // Stato: un pilota selezionato per ogni fascia [idFascia1, idFascia2, idFascia3]
+  // Stati per gestione piloti selezionati (form squadra)
   const [pilotiSelezionati, setPilotiSelezionati] = useState([
     null,
     null,
     null,
   ]);
 
+  // Stato persistente per la visualizzazione squadra/lega (NON si azzera al refresh!)
+  const [createdTeam, setCreatedTeam] = useState(null);
+  const [createdLeague, setCreatedLeague] = useState(null);
+
+  // Stati form invito giocatore
   const [legaCreataId, setLegaCreataId] = useState(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
+
+  // 1) Recupera squadra e lega dell'utente loggato quando la pagina si carica (o l'utente cambia)
+  useEffect(() => {
+    const userId = getLoggedUserId();
+    // Recupera squadra dal backend
+    fetch(`http://localhost:3002/api/team/utente/${userId}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        // Mostra tutte le squadre (se ne hai di più)
+        if (Array.isArray(data) && data.length > 0) {
+          setCreatedTeam(data[0]); // Mostra la prima, o .map per tutte!
+          // Se vuoi mostrare tutte le squadre, crea uno stato array e iterale nella UI!
+          // es: setCreatedTeams(data)
+        }
+      });
+
+    // Recupera lega dal backend
+    fetch(`http://localhost:3002/api/lega/utente/${userId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        // Se esiste lega già salvata, mostra subito
+        if (data && data.name) {
+          setCreatedLeague({
+            name: data.name,
+            id: data.id,
+            codiceInvito: data.codiceInvito,
+          });
+          setLegaCreataId(data.id);
+        }
+      });
+  }, []);
 
   // Funzione seleziona pilota per una fascia
   const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
@@ -84,7 +122,7 @@ function Team() {
     });
   };
 
-  // Crea la squadra con i 3 id selezionati, uno per fascia
+  // Funzione creazione squadra. Salva la squadra sul backend
   const handleCreateTeam = async (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
@@ -99,20 +137,28 @@ function Team() {
         name: teamName,
         presidentId: loggedUserId,
         piloti: pilotiSelezionati,
+        legaId: legaCreataId,
       }),
     });
     if (res.ok) {
-      const createdTeam = await res.json();
-      setMessage("Squadra creata: " + createdTeam.name);
+      const created = await res.json();
+      setMessage("Squadra creata: " + created.name);
+      // Salva squadra per visualizzazione persistente post-refresh
+      setCreatedTeam({
+        name: created.name,
+        pilotiSelezionati: [...pilotiSelezionati],
+      });
     } else {
       setMessage("Errore nella creazione della squadra");
+      setCreatedTeam(null);
     }
+    // Reset form
     setTeamName("");
     setPilotiSelezionati([null, null, null]);
     setShowTeamForm(false);
   };
 
-  // Crea lega
+  // Funzione creazione lega. Salva la lega sul backend
   const handleCreateLeague = async (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
@@ -125,25 +171,33 @@ function Team() {
       }),
     });
     if (res.ok) {
-      const createdLeague = await res.json();
-      setLegaCreataId(createdLeague.id);
+      const createdLeagueApi = await res.json();
+      setLegaCreataId(createdLeagueApi.id);
       setMessage(
         "Lega creata: " +
-          createdLeague.name +
+          createdLeagueApi.name +
           " | Codice invito: " +
-          createdLeague.codiceInvito
+          createdLeagueApi.codiceInvito
       );
       setShowInviteForm(true);
+      // Salva lega per visualizzazione persistente post-refresh
+      setCreatedLeague({
+        name: createdLeagueApi.name,
+        id: createdLeagueApi.id,
+        codiceInvito: createdLeagueApi.codiceInvito,
+      });
     } else {
       setMessage("Errore nella creazione della lega");
+      setCreatedLeague(null);
       setLegaCreataId(null);
       setShowInviteForm(false);
     }
+    // Reset form
     setLeagueName("");
     setShowLeagueForm(false);
   };
 
-  // Invita giocatore nella lega creata
+  // Funzione invito giocatore
   const handleInvitePlayer = async (e) => {
     e.preventDefault();
     if (!legaCreataId) {
@@ -161,6 +215,7 @@ function Team() {
     });
     if (res.ok) setMessage("Giocatore invitato!");
     else setMessage("Errore nell'invito");
+    // Reset form invito
     setInviteEmail("");
     setInviteUsername("");
     setShowInviteForm(false);
@@ -170,27 +225,28 @@ function Team() {
     <>
       <div className="container py-5 text-center">
         <Row className="g-4 mb-5">
-          {/* CARD SQUADRA */}
+          {/* ----------- CARD SQUADRA -------------- */}
           <Col xs={12} sm={12} lg={5}>
             <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
               <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
                 <div className="d-flex justify-content-center align-items-center gap-2">
                   <h2>Il mio team</h2>
+                  {/* Bottone per mostrare/nascondere il form di creazione, disabilitato se hai già creato una squadra */}
                   <OverlayTrigger
                     placement="top"
                     overlay={<Tooltip id="tooltip-team">Crea Team</Tooltip>}
                   >
                     <Button
                       variant="link"
-                      onClick={() => setShowTeamForm((prev) => !prev)}
-                      disabled={!!teamName} // disabilitata se già esistente
+                      onClick={() => setShowTeamForm((val) => !val)}
+                      disabled={!!createdTeam}
                     >
                       <i className="bi bi-plus-lg text-light fs-3"></i>
                     </Button>
                   </OverlayTrigger>
                 </div>
-
-                {!teamName && showTeamForm && (
+                {/* Form creazione squadra */}
+                {showTeamForm && (
                   <Form onSubmit={handleCreateTeam} className="mt-3">
                     <InputGroup className="mb-3">
                       <Form.Control
@@ -200,11 +256,15 @@ function Team() {
                         onChange={(e) => setTeamName(e.target.value)}
                         required
                       />
-                      <Button type="submit" variant="danger">
+                      <Button
+                        type="submit"
+                        variant="danger"
+                        disabled={!teamName}
+                      >
                         Crea
                       </Button>
                     </InputGroup>
-                    {/* Selezione piloti (radio) */}
+                    {/* Selezione piloti (un radio per fascia) */}
                     <div className="mb-3 d-flex flex-column">
                       <p>
                         <b>Scegli un pilota per ogni fascia:</b>
@@ -223,7 +283,7 @@ function Team() {
                           >
                             {fasciaObj.fascia}
                           </h6>
-                          <div className=" d-flex flex-wrap justify-content-center">
+                          <div className="d-flex flex-wrap justify-content-center">
                             {fasciaObj.piloti.map((pilota) => (
                               <Form.Check
                                 key={pilota.id}
@@ -245,12 +305,11 @@ function Team() {
                     </div>
                   </Form>
                 )}
-
-                {/* MOSTRA TEAM */}
-                {teamName && (
+                {/* Visualizzazione squadra creata */}
+                {createdTeam && (
                   <div className="mt-3">
                     <h5 style={{ fontWeight: "bold", color: "#ffffffff" }}>
-                      {teamName}
+                      {createdTeam.name}
                     </h5>
                     <h6
                       className="mt-2"
@@ -258,7 +317,23 @@ function Team() {
                     >
                       Piloti scelti:
                     </h6>
-                    {pilotiSelezionati.map((id, idx) => {
+
+                    {createdTeam &&
+                      createdTeam.pilotiSelezionati.map((id) => {
+                        // Cerca il pilota con quell’id nella lista statica
+                        const pilota = fascePiloti
+                          .flatMap((f) => f.piloti)
+                          .find((p) => p.id === id);
+                        return (
+                          <div key={id}>
+                            <span style={{ fontWeight: "bold" }}>
+                              {pilota ? pilota.nome : "Pilota non trovato"}
+                            </span>
+                          </div>
+                        );
+                      })}
+
+                    {createdTeam.pilotiSelezionati.map((id, idx) => {
                       const pilota = fascePiloti[idx].piloti.find(
                         (p) => p.id === id
                       );
@@ -274,11 +349,12 @@ function Team() {
                         </div>
                       );
                     })}
+                    {/* Bottone elimina squadra */}
                     <Button
                       variant="outline-danger"
                       className="mt-3"
                       onClick={() => {
-                        // Qui dovrai chiamare endpoint DELETE anche nel backend!
+                        setCreatedTeam(null);
                         setTeamName("");
                         setPilotiSelezionati([null, null, null]);
                         setShowTeamForm(false);
@@ -291,25 +367,26 @@ function Team() {
               </Card.Body>
             </Card>
           </Col>
-
-          {/* CARD LEGA */}
+          {/* ----------- CARD LEGA -------------- */}
           <Col xs={12} sm={12} lg={7}>
             <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
               <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
                 <div className="d-flex justify-content-center align-items-center gap-2">
                   <h2>La mia lega</h2>
+                  {/* Bottone per mostrare/nascondere il form lega */}
                   <OverlayTrigger
                     placement="top"
                     overlay={<Tooltip id="tooltip-league">Crea Lega</Tooltip>}
                   >
                     <Button
                       variant="link"
-                      onClick={() => setShowLeagueForm((prev) => !prev)}
-                      disabled={!!leagueName} // disabilitata se creata
+                      onClick={() => setShowLeagueForm((val) => !val)}
+                      disabled={!!createdLeague}
                     >
                       <i className="bi bi-plus-lg text-light fs-3"></i>
                     </Button>
                   </OverlayTrigger>
+                  {/* Bottone invito giocatori */}
                   <OverlayTrigger
                     placement="top"
                     overlay={
@@ -318,15 +395,15 @@ function Team() {
                   >
                     <Button
                       variant="link"
-                      onClick={() => setShowInviteForm((prev) => !prev)}
-                      disabled={!legaCreataId}
+                      onClick={() => setShowInviteForm((val) => !val)}
+                      disabled={!createdLeague}
                     >
                       <i className="bi bi-person-fill-add text-light fs-4"></i>
                     </Button>
                   </OverlayTrigger>
                 </div>
-
-                {!leagueName && showLeagueForm && (
+                {/* Form creazione lega */}
+                {showLeagueForm && (
                   <Form onSubmit={handleCreateLeague} className="mt-3">
                     <InputGroup>
                       <Form.Control
@@ -336,60 +413,47 @@ function Team() {
                         onChange={(e) => setLeagueName(e.target.value)}
                         required
                       />
-                      <Button type="submit" variant="danger">
+                      <Button
+                        type="submit"
+                        variant="danger"
+                        disabled={!leagueName}
+                      >
                         Crea
                       </Button>
                     </InputGroup>
                   </Form>
                 )}
-
-                {/* MOSTRA LEGA */}
-                {leagueName && (
+                {/* Visualizzazione lega creata */}
+                {createdLeague && (
                   <div className="mt-3">
                     <h5 style={{ fontWeight: "bold", color: "#ffaa00" }}>
-                      {leagueName}
+                      {createdLeague.name}
                     </h5>
-                    {legaCreataId && (
+                    {createdLeague.codiceInvito && (
                       <div style={{ margin: "10px 0" }}>
                         <span>
-                          Codice invito: <b>{legaCreataId}</b>
+                          Codice invito: <b>{createdLeague.codiceInvito}</b>
                         </span>
                       </div>
                     )}
-                    {/* Bottoni uscita o eliminazione: */}
-                    {/* Aggiungi qui la logica per capire se l'utente è il creatore */}
-                    {getLoggedUserId() === "TUO_ID_CREATOR" ? (
-                      <Button
-                        variant="outline-danger"
-                        className="mt-3"
-                        onClick={() => {
-                          // Qui dovrai chiamare endpoint DELETE della lega!
-                          setLeagueName("");
-                          setLegaCreataId(null);
-                          setShowLeagueForm(false);
-                        }}
-                      >
-                        Elimina lega
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline-danger"
-                        className="mt-3"
-                        onClick={() => {
-                          // Endpoint uscita!
-                          setLeagueName("");
-                          setLegaCreataId(null);
-                          setShowLeagueForm(false);
-                        }}
-                      >
-                        Esci dalla lega
-                      </Button>
-                    )}
+                    {/* Bottone elimina/esci dalla lega */}
+                    <Button
+                      variant="outline-danger"
+                      className="mt-3"
+                      onClick={() => {
+                        setCreatedLeague(null);
+                        setLeagueName("");
+                        setLegaCreataId(null);
+                        setShowLeagueForm(false);
+                        setShowInviteForm(false);
+                      }}
+                    >
+                      Elimina/Esci dalla lega
+                    </Button>
                   </div>
                 )}
-
-                {/* Invita giocatore, solo se hai una lega */}
-                {showInviteForm && legaCreataId && (
+                {/* Form invito giocatore (solo se hai una lega) */}
+                {showInviteForm && createdLeague && (
                   <Form onSubmit={handleInvitePlayer} className="mt-3">
                     <InputGroup>
                       <Form.Control
