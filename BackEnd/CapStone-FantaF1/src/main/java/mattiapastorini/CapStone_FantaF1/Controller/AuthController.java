@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -20,15 +21,19 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+
     // Registrazione
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody NewUserDTO newUserDto) {
         if (userService.register(newUserDto)) {
-            return ResponseEntity.ok("ok");
+            // Risposta OK
+            return ResponseEntity.ok(Map.of("message", "ok"));
         } else {
-            return ResponseEntity.status(409).body("Email in uso");
+            // Risposta ERRORE: Usa un oggetto Map!
+            return ResponseEntity.status(409).body(Map.of("message", "Email in uso"));
         }
     }
+
 
     // Login
     @PostMapping("/login")
@@ -37,7 +42,8 @@ public class AuthController {
         if (user.isPresent() && user.get().getPassword().equals(loginDto.password())) {
             return ResponseEntity.ok(user.get());
         } else {
-            return ResponseEntity.status(401).body("Credenziali errate");
+            return ResponseEntity.status(401).body(Map.of("message", "Credenziali errate"));
         }
     }
+
 }

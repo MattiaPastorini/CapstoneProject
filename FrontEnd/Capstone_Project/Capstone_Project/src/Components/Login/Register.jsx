@@ -22,11 +22,11 @@ function Register() {
     try {
       const response = await fetch("http://localhost:3002/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+
+      const result = await response.json(); // ora la risposta è SEMPRE JSON!
 
       if (response.ok) {
         setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
@@ -34,7 +34,8 @@ function Register() {
         setTimeout(() => navigate("/login"), 1500);
       } else {
         setMessage(
-          "Registrazione fallita. Email già registrata o dati errati."
+          result.message ||
+            "Registrazione fallita. Email già registrata o dati errati."
         );
       }
     } catch (error) {

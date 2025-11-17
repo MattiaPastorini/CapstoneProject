@@ -19,21 +19,16 @@ function Login({ setIsAuthenticated }) {
         body: JSON.stringify({ email, password }),
       });
 
-      // MODIFICA: prendo la risposta come JSON
       const result = await response.json();
 
-      // Se il backend risponde con l'oggetto utente loggato
-      // esempio: {id: 5, email: "...", username: "..."}
-      if (result && typeof result.id === "number") {
-        // Salva l'id in localStorage per i futuri fetch!
+      if (response.ok && result && typeof result.id === "number") {
         localStorage.setItem("userId", result.id);
-        localStorage.setItem("username", result.username); //aggiunge il nome vicino il logout
-
+        localStorage.setItem("username", result.username);
         setMessage("Login riuscito!");
         setIsAuthenticated(true);
         navigate("/team");
       } else {
-        setMessage("Email o password errati.");
+        setMessage(result.message || "Email o password errati.");
       }
     } catch (error) {
       setMessage("Errore di connessione al server.", error);

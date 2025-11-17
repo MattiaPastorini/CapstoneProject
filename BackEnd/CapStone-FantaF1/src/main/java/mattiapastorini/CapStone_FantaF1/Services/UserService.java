@@ -1,6 +1,7 @@
 package mattiapastorini.CapStone_FantaF1.Services;
 
 
+import mattiapastorini.CapStone_FantaF1.Email.MailService;
 import mattiapastorini.CapStone_FantaF1.Entities.User;
 import mattiapastorini.CapStone_FantaF1.Payloads.NewUserDTO;
 import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
@@ -13,6 +14,8 @@ import java.util.Optional;
 public class UserService {
     @Autowired // Inietto automaticamente il repository
     private UserRepository userRepository;
+    @Autowired
+    private MailService mailService;
 
     // Metodo per registrare un utente
     public boolean register(NewUserDTO newUserDto) {
@@ -28,6 +31,15 @@ public class UserService {
         // Qui bisognerebbe cifrare la password!
         nuovo.setPassword(newUserDto.password());
         userRepository.save(nuovo);
+
+
+        // Invio email
+        try {
+            mailService.sendRegistrationEmail(nuovo.getEmail(), nuovo.getUsername());
+        } catch (Exception e) {
+            // Logga l'errore ma non bloccare la registrazione
+            System.err.println("Errore invio mail: " + e.getMessage());
+        }
         return true;
     }
 
