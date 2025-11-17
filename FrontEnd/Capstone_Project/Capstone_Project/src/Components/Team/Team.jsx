@@ -309,7 +309,7 @@ function Team() {
                 {/* Visualizzazione squadra creata */}
                 {createdTeam && (
                   <div className="mt-3">
-                    <h5 style={{ fontWeight: "bold", color: "#ffffffff" }}>
+                    <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
                       {createdTeam.name}
                     </h5>
                     <h6
@@ -323,16 +323,6 @@ function Team() {
                       Array.isArray(createdTeam.pilotiSelezionati) &&
                       createdTeam.pilotiSelezionati.map((id) => {
                         // Cerca il pilota con quell’id nella lista statica
-                        const pilota = fascePiloti
-                          .flatMap((f) => f.piloti)
-                          .find((p) => p.id === id);
-                        return (
-                          <div key={id}>
-                            <span style={{ fontWeight: "bold" }}>
-                              {pilota ? pilota.nome : "Pilota non trovato"}
-                            </span>
-                          </div>
-                        );
                       })}
 
                     {createdTeam &&
@@ -430,7 +420,7 @@ function Team() {
                 {/* Visualizzazione lega creata */}
                 {createdLeague && (
                   <div className="mt-3">
-                    <h5 style={{ fontWeight: "bold", color: "#ffaa00" }}>
+                    <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
                       {createdLeague.name}
                     </h5>
                     {createdLeague.codiceInvito && (
