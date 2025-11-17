@@ -24,9 +24,10 @@ function Login({ setIsAuthenticated }) {
 
       // Se il backend risponde con l'oggetto utente loggato
       // esempio: {id: 5, email: "...", username: "..."}
-      if (result && result.id) {
+      if (result && typeof result.id === "number") {
         // Salva l'id in localStorage per i futuri fetch!
         localStorage.setItem("userId", result.id);
+        localStorage.setItem("username", result.username); //aggiunge il nome vicino il logout
 
         setMessage("Login riuscito!");
         setIsAuthenticated(true);
@@ -48,11 +49,11 @@ function Login({ setIsAuthenticated }) {
         <h4 className="text-center mb-3">Accedi</h4>
         <Form onSubmit={handleLogin}>
           <Form.Group className="mb-3">
-            <Form.Label>Email/Username</Form.Label>
+            <Form.Label>Email</Form.Label>
             <Form.Control
               className="rounded-4"
               type="text"
-              placeholder="Email/Username"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

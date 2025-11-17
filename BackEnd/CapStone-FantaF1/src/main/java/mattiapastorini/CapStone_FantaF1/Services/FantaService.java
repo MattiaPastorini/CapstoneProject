@@ -26,6 +26,12 @@ public class FantaService {
 
     // Crea squadra
     public Team creazioneTeam(String name, Long presidentId, List<Long> pilotiId, Long legaId) {
+        if (presidentId == null) {
+            throw new IllegalArgumentException("L'ID presidente non può essere nullo");
+        }
+        if (legaId == null) {
+            throw new IllegalArgumentException("L'ID lega non può essere nullo");
+        }
         User president = userRepository.findById(presidentId).orElseThrow();
         Lega lega = legaRepository.findById(legaId).orElseThrow();
 

@@ -35,6 +35,9 @@ public class FantaController {
     // Crea una squadra
     @PostMapping("/team/creazione")
     public ResponseEntity<?> creazioneTeam(@RequestBody TeamDTO teamDTO) {
+        if (teamDTO.presidentId() == null) {
+            return ResponseEntity.badRequest().body("ID presidente mancante");
+        }
         // Recupera l'ID user loggato come preferisci, qui ipotizzo che venga passato
         Team creato = fantaService.creazioneTeam(teamDTO.name(), teamDTO.presidentId(), teamDTO.piloti(), teamDTO.legaId());
         return ResponseEntity.ok(creato);

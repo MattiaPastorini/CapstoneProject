@@ -125,7 +125,8 @@ function Team() {
   // Funzione creazione squadra. Salva la squadra sul backend
   const handleCreateTeam = async (e) => {
     e.preventDefault();
-    const loggedUserId = getLoggedUserId();
+    const loggedUserId = Number(getLoggedUserId()); // Converte in numero
+
     if (pilotiSelezionati.some((x) => x === null)) {
       setMessage("Devi scegliere un pilota per ogni fascia!");
       return;
@@ -319,6 +320,7 @@ function Team() {
                     </h6>
 
                     {createdTeam &&
+                      Array.isArray(createdTeam.pilotiSelezionati) &&
                       createdTeam.pilotiSelezionati.map((id) => {
                         // Cerca il pilota con quell’id nella lista statica
                         const pilota = fascePiloti
@@ -333,22 +335,24 @@ function Team() {
                         );
                       })}
 
-                    {createdTeam.pilotiSelezionati.map((id, idx) => {
-                      const pilota = fascePiloti[idx].piloti.find(
-                        (p) => p.id === id
-                      );
-                      return (
-                        <div
-                          key={id}
-                          style={{ fontSize: "1em", marginBottom: "4px" }}
-                        >
-                          <span style={{ fontWeight: "bold" }}>
-                            {fascePiloti[idx].fascia}:
-                          </span>{" "}
-                          {pilota ? pilota.nome : "Non selezionato"}
-                        </div>
-                      );
-                    })}
+                    {createdTeam &&
+                      Array.isArray(createdTeam.pilotiSelezionati) &&
+                      createdTeam.pilotiSelezionati.map((id, idx) => {
+                        const pilota = fascePiloti[idx].piloti.find(
+                          (p) => p.id === id
+                        );
+                        return (
+                          <div
+                            key={id}
+                            style={{ fontSize: "1em", marginBottom: "4px" }}
+                          >
+                            <span style={{ fontWeight: "bold" }}>
+                              {fascePiloti[idx].fascia}:
+                            </span>{" "}
+                            {pilota ? pilota.nome : "Non selezionato"}
+                          </div>
+                        );
+                      })}
                     {/* Bottone elimina squadra */}
                     <Button
                       variant="outline-danger"

@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 function NavBar() {
   // Verifica login
   const isLoggedIn = !!localStorage.getItem("userId");
+  const username = localStorage.getItem("username");
+
   const navigate = useNavigate(); // Funzione Logout
 
   const handleLogout = () => {
@@ -77,10 +79,13 @@ function NavBar() {
                 className="text-secondary link-light"
                 style={{ cursor: "pointer" }}
               >
-                <i
-                  className="bi bi-box-arrow-right"
-                  style={{ fontSize: "1.7em" }}
-                ></i>
+                <div className="d-none d-lg-flex flex-grow-1 align-items-center">
+                  <i
+                    className="bi bi-box-arrow-right"
+                    style={{ fontSize: "1.7em" }}
+                  ></i>
+                  <span className="ms-2">{username}</span>
+                </div>
               </Nav.Link>
             ) : (
               <Nav.Link
