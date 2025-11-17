@@ -144,15 +144,16 @@ function Team() {
     if (res.ok) {
       const created = await res.json();
       setMessage("Squadra creata: " + created.name);
-      // Salva squadra per visualizzazione persistente post-refresh
       setCreatedTeam({
         name: created.name,
         pilotiSelezionati: [...pilotiSelezionati],
       });
     } else {
-      setMessage("Errore nella creazione della squadra");
+      const errorText = await res.text();
+      setMessage("Errore nella creazione della squadra: " + errorText);
       setCreatedTeam(null);
     }
+
     // Reset form
     setTeamName("");
     setPilotiSelezionati([null, null, null]);
@@ -220,6 +221,51 @@ function Team() {
     setInviteEmail("");
     setInviteUsername("");
     setShowInviteForm(false);
+  };
+
+  // Funzione elimina squadra
+  const handleDeleteTeam = async () => {
+    const loggedUserId = Number(getLoggedUserId());
+    if (isNaN(loggedUserId)) {
+      setMessage("ID utente non valido");
+      return;
+    }
+    const res = await fetch(
+      `http://localhost:3002/api/team/elimina/${createdTeam.id}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    if (res.ok) {
+      setMessage("Squadra eliminata");
+      setCreatedTeam(null);
+    } else {
+      setMessage("Errore nell'eliminazione della squadra");
+    }
+  };
+
+  // Funzione elimina lega
+  const handleDeleteLeague = async () => {
+    const loggedUserId = Number(getLoggedUserId());
+    if (isNaN(loggedUserId)) {
+      setMessage("ID utente non valido");
+      return;
+    }
+    const res = await fetch(
+      `http://localhost:3002/api/lega/elimina/${createdLeague.id}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    if (res.ok) {
+      setMessage("Lega eliminata");
+      setCreatedLeague(null);
+      setLegaCreataId(null);
+    } else {
+      setMessage("Errore nell'eliminazione della lega");
+    }
   };
 
   return (
@@ -321,7 +367,7 @@ function Team() {
 
                     {createdTeam &&
                       Array.isArray(createdTeam.pilotiSelezionati) &&
-                      createdTeam.pilotiSelezionati.map((id) => {
+                      createdTeam.pilotiSelezionati.map(() => {
                         // Cerca il pilota con quell’id nella lista statica
                       })}
 
@@ -345,6 +391,7 @@ function Team() {
                       })}
                     {/* Bottone elimina squadra */}
                     <Button
+                      onSubmit={handleDeleteTeam}
                       variant="outline-danger"
                       className="mt-3"
                       onClick={() => {
@@ -432,6 +479,7 @@ function Team() {
                     )}
                     {/* Bottone elimina/esci dalla lega */}
                     <Button
+                      onSubmit={handleDeleteLeague}
                       variant="outline-danger"
                       className="mt-3"
                       onClick={() => {

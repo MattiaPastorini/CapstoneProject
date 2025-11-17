@@ -25,13 +25,12 @@ function Register() {
         headers: {
           "Content-Type": "application/json",
         },
-        // NB: Correggi backend se vuole "name" invece di "nome"
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
         setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
-        setFormData({ nome: "", surname: "", email: "", password: "" });
+        setFormData({ username: "", email: "", password: "" });
         setTimeout(() => navigate("/login"), 1500);
       } else {
         setMessage(

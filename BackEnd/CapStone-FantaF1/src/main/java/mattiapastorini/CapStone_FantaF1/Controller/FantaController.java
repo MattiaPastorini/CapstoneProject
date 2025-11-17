@@ -107,5 +107,25 @@ public class FantaController {
         return ResponseEntity.ok(result);
     }
 
+    @DeleteMapping("/team/elimina/{id}")
+    public ResponseEntity<?> eliminaTeam(@PathVariable Long id) {
+        if (teamRepository.existsById(id)) {
+            teamRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("message", "Squadra eliminata"));
+        } else {
+            return ResponseEntity.status(404).body(Map.of("message", "Squadra non trovata"));
+        }
+    }
+
+    @DeleteMapping("/lega/elimina/{id}")
+    public ResponseEntity<?> eliminaLega(@PathVariable Long id) {
+        if (legaRepository.existsById(id)) {
+            legaRepository.deleteById(id);
+            return ResponseEntity.ok(Map.of("message", "Lega eliminata"));
+        } else {
+            return ResponseEntity.status(404).body(Map.of("message", "Lega non trovata"));
+        }
+    }
+
 
 }
