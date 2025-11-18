@@ -144,14 +144,20 @@ function Team() {
     if (res.ok) {
       const created = await res.json();
       setMessage("Squadra creata: " + created.name);
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
       setCreatedTeam({
         name: created.name,
         pilotiSelezionati: [...pilotiSelezionati],
       });
     } else {
-      const errorText = await res.text();
-      setMessage("Errore nella creazione della squadra: " + errorText);
-      setCreatedTeam(null);
+      setMessage(
+        "Errore nella creazione della squadra: devi prima essere in una lega"
+      );
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
     }
 
     // Reset form
@@ -181,6 +187,9 @@ function Team() {
           " | Codice invito: " +
           createdLeagueApi.codiceInvito
       );
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
       setShowInviteForm(true);
       // Salva lega per visualizzazione persistente post-refresh
       setCreatedLeague({
@@ -190,6 +199,9 @@ function Team() {
       });
     } else {
       setMessage("Errore nella creazione della lega");
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
       setCreatedLeague(null);
       setLegaCreataId(null);
       setShowInviteForm(false);
@@ -204,6 +216,9 @@ function Team() {
     e.preventDefault();
     if (!legaCreataId) {
       setMessage("Crea prima una lega!");
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
       return;
     }
     const res = await fetch("http://localhost:3002/api/lega/invito", {
@@ -215,8 +230,17 @@ function Team() {
         email: inviteEmail,
       }),
     });
-    if (res.ok) setMessage("Giocatore invitato!");
-    else setMessage("Errore nell'invito");
+    if (res.ok) {
+      setMessage("Giocatore invitato!");
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    } else {
+      setMessage("Errore nell'invito");
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
+    }
     // Reset form invito
     setInviteEmail("");
     setInviteUsername("");

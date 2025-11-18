@@ -31,7 +31,7 @@ function Footer() {
               </Nav.Link>
               <Nav.Link
                 as={Link}
-                to="/Notizie"
+                to="/news"
                 className="text-secondary link-light p-0 mb-1"
               >
                 Notizie
@@ -52,17 +52,10 @@ function Footer() {
               </Nav.Link>
               <Nav.Link
                 as={Link}
-                to="/ClassificaPiloti"
+                to="/classifiche"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Classifica Piloti
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/ClassificaCostruttori"
-                className="text-secondary link-light p-0 mb-1"
-              >
-                Classifica Costruttori
+                Classifica
               </Nav.Link>
             </Nav>
           </Col>
@@ -71,12 +64,9 @@ function Footer() {
           <Col xs={12} md={4} className="mb-3">
             <h5 className="mb-2 text-center">Contatti</h5>
             <p className="mb-1 text-light text-center">
-              <a
-                href="#"
-                className="text-decoration-none text-secondary link-light"
-              >
-                pandafunclub@bamboo.com
-              </a>
+              <span className="text-decoration-none text-secondary link-light mb-0">
+                mattia.862002@gmail.com
+              </span>
             </p>
             <p className="mb-0 text-center">
               <a

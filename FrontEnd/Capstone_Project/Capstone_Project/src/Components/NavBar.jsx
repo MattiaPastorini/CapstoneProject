@@ -72,6 +72,23 @@ function NavBar() {
                 Regolamento
               </Nav.Link>
             </Nav>
+            <Nav className="">
+              {/* Notifiche MOSTRATE SOLO SE LOGGATO */}
+              {isLoggedIn && (
+                <Nav.Link
+                  as={Link}
+                  to="/notifiche"
+                  className="text-secondary link-light"
+                  style={{ display: "flex", alignItems: "center" }}
+                >
+                  <i
+                    className="bi bi-bell-fill"
+                    style={{ fontSize: "1.2em" }}
+                  ></i>
+                </Nav.Link>
+              )}
+            </Nav>
+
             {/* Tasto Logout o Omino desktop */}
             {isLoggedIn ? (
               <Nav.Link
