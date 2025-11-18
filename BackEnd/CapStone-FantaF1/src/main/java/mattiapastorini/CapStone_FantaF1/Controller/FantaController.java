@@ -2,10 +2,7 @@ package mattiapastorini.CapStone_FantaF1.Controller;
 
 import mattiapastorini.CapStone_FantaF1.Entities.*;
 import mattiapastorini.CapStone_FantaF1.Payloads.*;
-import mattiapastorini.CapStone_FantaF1.Repositories.LegaRepository;
-import mattiapastorini.CapStone_FantaF1.Repositories.PilotaRepository;
-import mattiapastorini.CapStone_FantaF1.Repositories.TeamRepository;
-import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
+import mattiapastorini.CapStone_FantaF1.Repositories.*;
 import mattiapastorini.CapStone_FantaF1.Services.FantaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -31,6 +29,10 @@ public class FantaController {
 
     @Autowired
     private PilotaRepository pilotaRepository;
+
+    @Autowired
+    private InvitoRepository invitoRepository;
+
 
     // Crea una squadra
     @PostMapping("/team/creazione")
@@ -126,6 +128,24 @@ public class FantaController {
             return ResponseEntity.status(404).body(Map.of("message", "Lega non trovata"));
         }
     }
+
+    //  NOTIFICHE INVITI LEGA
+    @GetMapping("/notifiche/{userId}")
+    public ResponseEntity<?> getInvitiLega(@PathVariable Long userId) {
+        List<Invito> inviti = invitoRepository.findByUserIdAndAcceptedFalse(userId);
+
+        List<Map<String, Object>> result = inviti.stream().map(invito -> {
+            Map<String, Object> mappa = new HashMap<>();
+            mappa.put("id", invito.getId());
+            mappa.put("legaId", invito.getLegaId());
+            mappa.put("message", invito.getMessage());
+            mappa.put("accepted", invito.isAccepted());
+            return mappa;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
 
 
 }

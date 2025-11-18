@@ -4,6 +4,8 @@ import Nav from "react-bootstrap/Nav";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 
 function NavBar() {
   // Verifica login
@@ -14,9 +16,22 @@ function NavBar() {
 
   const handleLogout = () => {
     localStorage.removeItem("userId");
-    navigate("/login"); // Oppure window.location.href = "/login";
+    navigate("/login");
   };
 
+  // Stato notifiche
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const userId = localStorage.getItem("userId");
+      fetch(`http://localhost:3002/api/notifiche/${userId}`)
+        .then((res) => res.json())
+        .then((data) => setNotifications(data))
+        .catch(() => setNotifications([]));
+      console.log("User ID:", userId);
+    }
+  }, [isLoggedIn]);
   return (
     <>
       {/* NAVBAR SUPERIORE */}{" "}
@@ -72,20 +87,33 @@ function NavBar() {
                 Regolamento
               </Nav.Link>
             </Nav>
-            <Nav className="">
-              {/* Notifiche MOSTRATE SOLO SE LOGGATO */}
+            <Nav>
+              {/* 🔔 Notifiche MOSTRATE SOLO SE LOGGATO */}
               {isLoggedIn && (
-                <Nav.Link
-                  as={Link}
-                  to="/notifiche"
-                  className="text-secondary link-light"
-                  style={{ display: "flex", alignItems: "center" }}
-                >
-                  <i
-                    className="bi bi-bell-fill"
-                    style={{ fontSize: "1.2em" }}
-                  ></i>
-                </Nav.Link>
+                <Dropdown align="end">
+                  <Dropdown.Toggle
+                    as={Nav.Link}
+                    className="text-secondary link-light"
+                    style={{ display: "flex", alignItems: "center" }}
+                  >
+                    <i
+                      className="bi bi-bell-fill"
+                      style={{ fontSize: "1.2em" }}
+                    ></i>
+                  </Dropdown.Toggle>
+
+                  <Dropdown.Menu style={{ minWidth: "250px" }}>
+                    {notifications && notifications.length > 0 ? (
+                      notifications.map((notif, index) => (
+                        <Dropdown.Item key={index}>{notif}</Dropdown.Item>
+                      ))
+                    ) : (
+                      <Dropdown.ItemText className="text-muted">
+                        Nessuna notifica
+                      </Dropdown.ItemText>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
               )}
             </Nav>
 
