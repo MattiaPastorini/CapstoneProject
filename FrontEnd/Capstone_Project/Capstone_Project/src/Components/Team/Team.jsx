@@ -13,7 +13,6 @@ import { Link } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Lista piloti per fascia (statico, non serve modificarlo)
 const fascePiloti = [
   {
     fascia: "PRIMA FASCIA",
@@ -52,56 +51,49 @@ const fascePiloti = [
   },
 ];
 
-// Restituisce l'userId dal localStorage (ad es. lo metti quando loggi)
 const getLoggedUserId = () => localStorage.getItem("userId");
 
 function Team() {
-  // Stati di UI per mostrare/nascondere form e invito
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showLeagueForm, setShowLeagueForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
 
-  // Stati per gestione input dei form
   const [teamName, setTeamName] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [message, setMessage] = useState("");
 
-  // Stati per gestione piloti selezionati (form squadra)
   const [pilotiSelezionati, setPilotiSelezionati] = useState([
     null,
     null,
     null,
   ]);
 
-  // Stato persistente per la visualizzazione squadra/lega (NON si azzera al refresh!)
   const [createdTeam, setCreatedTeam] = useState(null);
   const [createdLeague, setCreatedLeague] = useState(null);
 
-  // Stati form invito giocatore
   const [legaCreataId, setLegaCreataId] = useState(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
 
-  // 1) Recupera squadra e lega dell'utente loggato quando la pagina si carica (o l'utente cambia)
   useEffect(() => {
     const userId = getLoggedUserId();
-    // Recupera squadra dal backend
+
+    // Recupera squadra (mappa piloti -> pilotiSelezionati)
     fetch(`http://localhost:3002/api/team/utente/${userId}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        // Mostra tutte le squadre (se ne hai di più)
         if (Array.isArray(data) && data.length > 0) {
-          setCreatedTeam(data[0]); // Mostra la prima, o .map per tutte!
-          // Se vuoi mostrare tutte le squadre, crea uno stato array e iterale nella UI!
-          // es: setCreatedTeams(data)
+          setCreatedTeam({
+            name: data[0].name,
+            pilotiSelezionati: data[0].piloti, // <-- qui mappo corretto
+          });
         }
       });
 
-    // Recupera lega dal backend
+    // Recupera lega
     fetch(`http://localhost:3002/api/lega/utente/${userId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        // Se esiste lega già salvata, mostra subito
         if (data && data.name) {
           setCreatedLeague({
             name: data.name,
@@ -113,7 +105,6 @@ function Team() {
       });
   }, []);
 
-  // Funzione seleziona pilota per una fascia
   const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
     setPilotiSelezionati((prev) => {
       const nuovi = [...prev];
@@ -122,11 +113,9 @@ function Team() {
     });
   };
 
-  // Funzione creazione squadra. Salva la squadra sul backend
   const handleCreateTeam = async (e) => {
     e.preventDefault();
-    const loggedUserId = Number(getLoggedUserId()); // Converte in numero
-
+    const loggedUserId = Number(getLoggedUserId());
     if (pilotiSelezionati.some((x) => x === null)) {
       setMessage("Devi scegliere un pilota per ogni fascia!");
       return;
@@ -159,14 +148,11 @@ function Team() {
         setMessage("");
       }, 3000);
     }
-
-    // Reset form
     setTeamName("");
     setPilotiSelezionati([null, null, null]);
     setShowTeamForm(false);
   };
 
-  // Funzione creazione lega. Salva la lega sul backend
   const handleCreateLeague = async (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
@@ -191,7 +177,6 @@ function Team() {
         setMessage("");
       }, 3000);
       setShowInviteForm(true);
-      // Salva lega per visualizzazione persistente post-refresh
       setCreatedLeague({
         name: createdLeagueApi.name,
         id: createdLeagueApi.id,
@@ -206,12 +191,10 @@ function Team() {
       setLegaCreataId(null);
       setShowInviteForm(false);
     }
-    // Reset form
     setLeagueName("");
     setShowLeagueForm(false);
   };
 
-  // Funzione invito giocatore
   const handleInvitePlayer = async (e) => {
     e.preventDefault();
     if (!legaCreataId) {
@@ -241,13 +224,11 @@ function Team() {
         setMessage("");
       }, 3000);
     }
-    // Reset form invito
     setInviteEmail("");
     setInviteUsername("");
     setShowInviteForm(false);
   };
 
-  // Funzione elimina squadra
   const handleDeleteTeam = async () => {
     const loggedUserId = Number(getLoggedUserId());
     if (isNaN(loggedUserId)) {
@@ -269,7 +250,6 @@ function Team() {
     }
   };
 
-  // Funzione elimina lega
   const handleDeleteLeague = async () => {
     const loggedUserId = Number(getLoggedUserId());
     if (isNaN(loggedUserId)) {
@@ -302,7 +282,6 @@ function Team() {
               <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
                 <div className="d-flex justify-content-center align-items-center gap-2">
                   <h2>Il mio team</h2>
-                  {/* Bottone per mostrare/nascondere il form di creazione, disabilitato se hai già creato una squadra */}
                   <OverlayTrigger
                     placement="top"
                     overlay={<Tooltip id="tooltip-team">Crea Team</Tooltip>}
@@ -388,15 +367,7 @@ function Team() {
                     >
                       Piloti scelti:
                     </h6>
-
-                    {createdTeam &&
-                      Array.isArray(createdTeam.pilotiSelezionati) &&
-                      createdTeam.pilotiSelezionati.map(() => {
-                        // Cerca il pilota con quell’id nella lista statica
-                      })}
-
-                    {createdTeam &&
-                      Array.isArray(createdTeam.pilotiSelezionati) &&
+                    {Array.isArray(createdTeam.pilotiSelezionati) &&
                       createdTeam.pilotiSelezionati.map((id, idx) => {
                         const pilota = fascePiloti[idx].piloti.find(
                           (p) => p.id === id
@@ -413,7 +384,6 @@ function Team() {
                           </div>
                         );
                       })}
-                    {/* Bottone elimina squadra */}
                     <Button
                       onSubmit={handleDeleteTeam}
                       variant="outline-danger"
@@ -501,7 +471,6 @@ function Team() {
                         </span>
                       </div>
                     )}
-                    {/* Bottone elimina/esci dalla lega */}
                     <Button
                       onSubmit={handleDeleteLeague}
                       variant="outline-danger"

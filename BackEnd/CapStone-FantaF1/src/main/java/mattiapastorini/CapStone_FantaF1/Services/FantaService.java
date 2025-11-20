@@ -53,17 +53,19 @@ public class FantaService {
         return teamRepository.save(team);
     }
 
-
+    // QUERY AGGIORNATA: piloti sono caricati già nella entity grazie al JOIN FETCH, niente concurrent!
     public List<Team> getTeamsByPresident(Long userId) {
         User president = userRepository.findById(userId).orElse(null);
         if (president == null) return List.of();
-        return teamRepository.findByPresident(president);
+        return teamRepository.findByPresidentWithPiloti(president);
     }
 
 
     // Crea lega
     public Lega creazioneLega(String name, Long presidentId) {
         User president = userRepository.findById(presidentId).orElseThrow();
+        Lega esistente = legaRepository.findByPresident(president);
+        if (esistente != null) throw new IllegalStateException("Hai già una lega!");
         Lega lega = new Lega();
         lega.setName(name);
         lega.setPresident(president);
@@ -81,7 +83,6 @@ public class FantaService {
                 : userRepository.findByUsername(username);
 
         if (friend.isPresent()) {
-            // Aggiungi l'amico se non già dentro
             return lega.getMembers().add(friend.get());
         }
         return false;
@@ -93,23 +94,27 @@ public class FantaService {
         if (optLega.isPresent()) {
             Lega lega = optLega.get();
             User user = userRepository.findById(userId).orElseThrow();
+            if (userHasLeague(user)) return false;
             return lega.getMembers().add(user);
         }
         return false;
     }
 
-    // Genera codice invito (esempio base)
+    private boolean userHasLeague(User user) {
+        return legaRepository.findByMembers_Id(user.getId()) != null
+                || legaRepository.findByPresident(user) != null;
+    }
+
     private String generateRandomCode() {
         return java.util.UUID.randomUUID().toString().substring(0, 8);
     }
 
-
     public Lega getLegaByUserId(Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return null;
-        Lega lega = legaRepository.findByPresident(user); // cerca come president
+        Lega lega = legaRepository.findByPresident(user);
         if (lega == null) {
-            lega = legaRepository.findByMembers_Id(userId); // cerca come membro!
+            lega = legaRepository.findByMembers_Id(userId);
         }
         return lega;
     }
@@ -120,6 +125,4 @@ public class FantaService {
         if (president == null || lega == null) return null;
         return teamRepository.findByPresidentAndLega(president, lega);
     }
-
-
 }

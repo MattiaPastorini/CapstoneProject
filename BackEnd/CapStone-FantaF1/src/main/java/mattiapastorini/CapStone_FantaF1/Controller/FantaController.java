@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,14 +51,9 @@ public class FantaController {
     @GetMapping("/team/utente/{userId}")
     public ResponseEntity<?> getTeamsByUser(@PathVariable Long userId) {
         List<Team> teams = fantaService.getTeamsByPresident(userId);
-        List<Map<String, Object>> result = teams.stream().map(team -> {
-            Map<String, Object> m = new HashMap<>();
-            m.put("name", team.getName());
-            m.put("piloti", team.getPiloti().stream().map(Pilota::getId).toList());
-            m.put("legaId", team.getLega().getId());
-            m.put("legaName", team.getLega().getName());
-            return m;
-        }).toList();
+        List<TeamResponsePayload> result = teams.stream()
+                .map(TeamResponsePayload::new)
+                .toList();
         return ResponseEntity.ok(result);
     }
 
@@ -102,12 +99,13 @@ public class FantaController {
             return ResponseEntity.ok().body(null);
         Map<String, Object> result = Map.of(
                 "name", team.getName(),
-                "piloti", team.getPiloti().stream().map(Pilota::getId).toList(),
+                "piloti", new ArrayList<>(team.getPiloti()).stream().map(Pilota::getId).toList(),
                 "lega", team.getLega().getName(),
                 "legaId", team.getLega().getId()
         );
         return ResponseEntity.ok(result);
     }
+
 
     @DeleteMapping("/team/elimina/{id}")
     public ResponseEntity<?> eliminaTeam(@PathVariable Long id) {
@@ -145,7 +143,6 @@ public class FantaController {
 
         return ResponseEntity.ok(result);
     }
-
 
 
 }

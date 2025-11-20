@@ -19,8 +19,14 @@ public class Team {
     @ManyToOne
     private User president;   //presidente della squadra
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "team_piloti",
+            joinColumns = @JoinColumn(name = "team_id"),
+            inverseJoinColumns = @JoinColumn(name = "pilota_id")
+    )
     private Set<Pilota> piloti = new HashSet<>();
+
 
     @ManyToOne
     private Lega lega; // ogni Team appartiene a una lega
