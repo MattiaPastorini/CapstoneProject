@@ -138,7 +138,7 @@ public class FantaService {
     }
 
     public void eliminaTeam(Long teamId) {
-        Team found = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Lega non trovata!"));
+        Team found = teamRepository.findById(teamId).orElseThrow(() -> new RuntimeException("Team non trovato!"));
         found.getPiloti().clear();
         teamRepository.deleteById(teamId);
     }

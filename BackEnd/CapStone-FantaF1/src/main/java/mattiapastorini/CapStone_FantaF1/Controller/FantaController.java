@@ -1,16 +1,14 @@
 package mattiapastorini.CapStone_FantaF1.Controller;
 
 import mattiapastorini.CapStone_FantaF1.Entities.*;
+import mattiapastorini.CapStone_FantaF1.Exceptions.*;
 import mattiapastorini.CapStone_FantaF1.Payloads.*;
 import mattiapastorini.CapStone_FantaF1.Repositories.*;
 import mattiapastorini.CapStone_FantaF1.Services.FantaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,23 +37,19 @@ public class FantaController {
 
     // Crea una squadra
     @PostMapping("/team/creazione")
-    public ResponseEntity<?> creazioneTeam(@RequestBody TeamDTO teamDTO) {
-        if (teamDTO.presidentId() == null) {
-            return ResponseEntity.badRequest().body("ID presidente mancante");
-        }
-        // Recupera l'ID user loggato come preferisci, qui ipotizzo che venga passato
+    @ResponseStatus(HttpStatus.CREATED)
+    public Team creazioneTeam(@RequestBody TeamDTO teamDTO) {
         Team creato = fantaService.creazioneTeam(teamDTO.name(), teamDTO.presidentId(), teamDTO.piloti(), teamDTO.legaId());
-        return ResponseEntity.ok(creato);
+        return creato;
     }
 
     // Restituisce la squadra associata al presidentId passato
     @GetMapping("/team/utente/{userId}")
-    public ResponseEntity<?> getTeamsByUser(@PathVariable Long userId) {
+    public List<TeamResponsePayload> getTeamsByUser(@PathVariable Long userId) {
         List<Team> teams = fantaService.getTeamsByPresident(userId);
-        List<TeamResponsePayload> result = teams.stream()
+        return teams.stream()
                 .map(TeamResponsePayload::new)
                 .toList();
-        return ResponseEntity.ok(result);
     }
 
 
@@ -68,44 +62,46 @@ public class FantaController {
     }
 
     // Invita un amico a una lega (per email o username)
-//    @PostMapping("/lega/invito")
-//    public Invito invito(@RequestBody InvitoDTO invitoDTO) {
-//        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
-//        return ok ? ResponseEntity.ok("Invitato!") : ResponseEntity.status(404).body("Utente non trovato");
-//    }
+    @PostMapping("/lega/invito")
+    public MessaggioDTO invito(@RequestBody InvitoDTO invitoDTO) {
+        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
+        String msg = ok ? "Invitato! Ora puoi accettare per entrare nella lega." : "Utente non trovato";
+        return new MessaggioDTO(ok, msg);
+    }
 
     // Un utente entra in lega tramite codice invito
     @PostMapping("/lega/partecipazione")
-    public ResponseEntity<?> partecipazione(@RequestBody PartecipazioneAllaLegaDTO partecipazioneAllaLegaDTO) {
+    public MessaggioDTO partecipazione(@RequestBody PartecipazioneAllaLegaDTO partecipazioneAllaLegaDTO) {
         boolean ok = fantaService.partecipazioneAllaLega(partecipazioneAllaLegaDTO.codiceInvito(), partecipazioneAllaLegaDTO.userId());
-        return ok ? ResponseEntity.ok("Entrato!") : ResponseEntity.status(404).body("Lega non trovata o già membro");
+        String msg = ok ? "Entrato!" : "Lega non trovata o già membro";
+        return new MessaggioDTO(ok, msg);
     }
 
 
     @GetMapping("/lega/utente/{userId}")
-    public ResponseEntity<?> getLeagueByMember(@PathVariable Long userId) {
+    public Lega getLeagueByMember(@PathVariable Long userId) {
         Lega lega = fantaService.getLegaByUserId(userId);
         if (lega != null) {
-            return ResponseEntity.ok(lega);
+            return lega;
         } else {
-            return ResponseEntity.ok().body(null);
+            throw new ResourceNotFoundException("Lega non trovata per userId: " + userId);
         }
     }
 
     @GetMapping("/team/utente/{userId}/lega/{legaId}")
-    public ResponseEntity<?> getTeamByUserAndLeague(@PathVariable Long userId, @PathVariable Long legaId) {
+    public Map<String, Object> getTeamByUserAndLeague(@PathVariable Long userId, @PathVariable Long legaId) {
         User user = userRepository.findById(userId).orElseThrow();
         Lega lega = legaRepository.findById(legaId).orElseThrow();
         Team team = teamRepository.findByPresidentAndLega(user, lega);
         if (team == null)
-            return ResponseEntity.ok().body(null);
+            return null; // oppure puoi lanciare una exception custom se preferisci
         Map<String, Object> result = Map.of(
                 "name", team.getName(),
-                "piloti", new ArrayList<>(team.getPiloti()).stream().map(Pilota::getId).toList(),
+                "piloti", team.getPiloti().stream().map(Pilota::getId).toList(),
                 "lega", team.getLega().getName(),
                 "legaId", team.getLega().getId()
         );
-        return ResponseEntity.ok(result);
+        return result;
     }
 
 
@@ -130,10 +126,10 @@ public class FantaController {
 
     //  NOTIFICHE INVITI LEGA
     @GetMapping("/notifiche/{userId}")
-    public ResponseEntity<?> getInvitiLega(@PathVariable Long userId) {
+    public List<Map<String, Object>> getInvitiLega(@PathVariable Long userId) {
         List<Invito> inviti = invitoRepository.findByUserIdAndAcceptedFalse(userId);
 
-        List<Map<String, Object>> result = inviti.stream().map(invito -> {
+        return inviti.stream().map(invito -> {
             Map<String, Object> mappa = new HashMap<>();
             mappa.put("id", invito.getId());
             mappa.put("legaId", invito.getLegaId());
@@ -141,8 +137,6 @@ public class FantaController {
             mappa.put("accepted", invito.isAccepted());
             return mappa;
         }).collect(Collectors.toList());
-
-        return ResponseEntity.ok(result);
     }
 
 

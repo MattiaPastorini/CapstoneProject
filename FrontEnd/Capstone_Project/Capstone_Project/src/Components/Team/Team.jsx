@@ -113,14 +113,10 @@ function Team() {
     });
   };
 
-  const handleCreateTeam = async (e) => {
+  const handleCreateTeam = (e) => {
     e.preventDefault();
     const loggedUserId = Number(getLoggedUserId());
-    if (pilotiSelezionati.some((x) => x === null)) {
-      setMessage("Devi scegliere un pilota per ogni fascia!");
-      return;
-    }
-    const res = await fetch("http://localhost:3002/api/team/creazione", {
+    fetch("http://localhost:3002/api/team/creazione", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -129,71 +125,22 @@ function Team() {
         piloti: pilotiSelezionati,
         legaId: legaCreataId,
       }),
-    });
-    if (res.ok) {
-      const created = await res.json();
-      setMessage("Squadra creata: " + created.name);
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
-      setCreatedTeam({
-        name: created.name,
-        pilotiSelezionati: [...pilotiSelezionati],
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log("Team creato");
+          return res.json();
+        } else {
+          throw new Error("Fetch non riuscita");
+        }
+      })
+      .then((data) => {
+        setCreatedTeam(data.id);
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    } else {
-      setMessage(
-        "Errore nella creazione della squadra: devi prima essere in una lega"
-      );
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
-    }
-    setTeamName("");
-    setPilotiSelezionati([null, null, null]);
-    setShowTeamForm(false);
   };
-
-  // const handleCreateLeague = async (e) => {
-  //   e.preventDefault();
-  //   const loggedUserId = getLoggedUserId();
-  //   const res = await fetch("http://localhost:3002/api/lega/creazione", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({
-  //       name: leagueName,
-  //       presidentId: loggedUserId,
-  //     }),
-  //   });
-  //   if (res.ok) {
-  //     const createdLeagueApi = await res.json();
-  //     setLegaCreataId(createdLeagueApi.id);
-  //     setMessage(
-  //       "Lega creata: " +
-  //         createdLeagueApi.name +
-  //         " | Codice invito: " +
-  //         createdLeagueApi.codiceInvito
-  //     );
-  //     setTimeout(() => {
-  //       setMessage("");
-  //     }, 3000);
-  //     setShowInviteForm(true);
-  //     setCreatedLeague({
-  //       name: createdLeagueApi.name,
-  //       id: createdLeagueApi.id,
-  //       codiceInvito: createdLeagueApi.codiceInvito,
-  //     });
-  //   } else {
-  //     setMessage("Errore nella creazione della lega");
-  //     setTimeout(() => {
-  //       setMessage("");
-  //     }, 3000);
-  //     setCreatedLeague(null);
-  //     setLegaCreataId(null);
-  //     setShowInviteForm(false);
-  //   }
-  //   setLeagueName("");
-  //   setShowLeagueForm(false);
-  // };
 
   const handleCreateLeague = (e) => {
     e.preventDefault();
@@ -256,25 +203,21 @@ function Team() {
     setShowInviteForm(false);
   };
 
-  const handleDeleteTeam = async () => {
-    const loggedUserId = Number(getLoggedUserId());
-    if (isNaN(loggedUserId)) {
-      setMessage("ID utente non valido");
-      return;
-    }
-    const res = await fetch(
-      `http://localhost:3002/api/team/elimina/${createdTeam.id}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+  const handleDeleteTeam = () => {
+    fetch(`http://localhost:3002/api/team/elimina/${createdTeam.id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    }).then((res) => {
+      if (res.ok) {
+        setCreatedTeam(null);
+        setTeamName("");
+        setPilotiSelezionati([null, null, null]);
+        setShowTeamForm(false);
+        console.log("Team eliminato");
+      } else {
+        throw new Error("Impossibile eliminare!");
       }
-    );
-    if (res.ok) {
-      setMessage("Squadra eliminata");
-      setCreatedTeam(null);
-    } else {
-      setMessage("Errore nell'eliminazione della squadra");
-    }
+    });
   };
 
   const handleDeleteLeague = () => {
@@ -518,14 +461,10 @@ function Team() {
                         );
                       })}
                     <Button
-                      onSubmit={handleDeleteTeam}
                       variant="outline-danger"
                       className="mt-3"
                       onClick={() => {
-                        setCreatedTeam(null);
-                        setTeamName("");
-                        setPilotiSelezionati([null, null, null]);
-                        setShowTeamForm(false);
+                        handleDeleteTeam();
                       }}
                     >
                       Elimina squadra

@@ -1,13 +1,14 @@
 package mattiapastorini.CapStone_FantaF1.Entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 public class Pilota {
     @Id
     @GeneratedValue
@@ -21,5 +22,18 @@ public class Pilota {
     @ManyToMany(mappedBy = "piloti")
     private Set<Team> teams = new HashSet<>();
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pilota pilota = (Pilota) o;
+        return id != null && id.equals(pilota.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 
 }
