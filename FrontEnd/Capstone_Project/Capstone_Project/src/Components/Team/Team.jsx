@@ -103,7 +103,7 @@ function Team() {
           setLegaCreataId(data.id);
         }
       });
-  }, []);
+  }, [createdLeague]);
 
   const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
     setPilotiSelezionati((prev) => {
@@ -153,46 +153,73 @@ function Team() {
     setShowTeamForm(false);
   };
 
-  const handleCreateLeague = async (e) => {
+  // const handleCreateLeague = async (e) => {
+  //   e.preventDefault();
+  //   const loggedUserId = getLoggedUserId();
+  //   const res = await fetch("http://localhost:3002/api/lega/creazione", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       name: leagueName,
+  //       presidentId: loggedUserId,
+  //     }),
+  //   });
+  //   if (res.ok) {
+  //     const createdLeagueApi = await res.json();
+  //     setLegaCreataId(createdLeagueApi.id);
+  //     setMessage(
+  //       "Lega creata: " +
+  //         createdLeagueApi.name +
+  //         " | Codice invito: " +
+  //         createdLeagueApi.codiceInvito
+  //     );
+  //     setTimeout(() => {
+  //       setMessage("");
+  //     }, 3000);
+  //     setShowInviteForm(true);
+  //     setCreatedLeague({
+  //       name: createdLeagueApi.name,
+  //       id: createdLeagueApi.id,
+  //       codiceInvito: createdLeagueApi.codiceInvito,
+  //     });
+  //   } else {
+  //     setMessage("Errore nella creazione della lega");
+  //     setTimeout(() => {
+  //       setMessage("");
+  //     }, 3000);
+  //     setCreatedLeague(null);
+  //     setLegaCreataId(null);
+  //     setShowInviteForm(false);
+  //   }
+  //   setLeagueName("");
+  //   setShowLeagueForm(false);
+  // };
+
+  const handleCreateLeague = (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
-    const res = await fetch("http://localhost:3002/api/lega/creazione", {
+    fetch("http://localhost:3002/api/lega/creazione", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: leagueName,
         presidentId: loggedUserId,
       }),
-    });
-    if (res.ok) {
-      const createdLeagueApi = await res.json();
-      setLegaCreataId(createdLeagueApi.id);
-      setMessage(
-        "Lega creata: " +
-          createdLeagueApi.name +
-          " | Codice invito: " +
-          createdLeagueApi.codiceInvito
-      );
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
-      setShowInviteForm(true);
-      setCreatedLeague({
-        name: createdLeagueApi.name,
-        id: createdLeagueApi.id,
-        codiceInvito: createdLeagueApi.codiceInvito,
+    })
+      .then((res) => {
+        if (res.ok) {
+          console.log("Lega creata");
+          return res.json();
+        } else {
+          throw new Error("Fetch non riuscita");
+        }
+      })
+      .then((data) => {
+        setCreatedLeague(data.id);
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    } else {
-      setMessage("Errore nella creazione della lega");
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
-      setCreatedLeague(null);
-      setLegaCreataId(null);
-      setShowInviteForm(false);
-    }
-    setLeagueName("");
-    setShowLeagueForm(false);
   };
 
   const handleInvitePlayer = async (e) => {
@@ -250,32 +277,138 @@ function Team() {
     }
   };
 
-  const handleDeleteLeague = async () => {
-    const loggedUserId = Number(getLoggedUserId());
-    if (isNaN(loggedUserId)) {
-      setMessage("ID utente non valido");
-      return;
-    }
-    const res = await fetch(
-      `http://localhost:3002/api/lega/elimina/${createdLeague.id}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    if (res.ok) {
-      setMessage("Lega eliminata");
-      setCreatedLeague(null);
-      setLegaCreataId(null);
-    } else {
-      setMessage("Errore nell'eliminazione della lega");
-    }
+  const handleDeleteLeague = () => {
+    fetch(`http://localhost:3002/api/lega/elimina/${createdLeague.id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => {
+        if (res.ok) {
+          setCreatedLeague(null);
+          setLeagueName("");
+          setLegaCreataId(null);
+          setShowLeagueForm(false);
+          setShowInviteForm(false);
+          console.log("Lega eliminata");
+        } else {
+          throw new Error("Impossibile eliminare!");
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
     <>
       <div className="container py-5 text-center">
         <Row className="g-4 mb-5">
+          {/* ----------- CARD LEGA -------------- */}
+          <Col xs={12} sm={12} lg={7}>
+            <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
+              <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
+                <div className="d-flex justify-content-center align-items-center gap-2">
+                  <h2>La mia lega</h2>
+                  {/* Bottone per mostrare/nascondere il form lega */}
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip id="tooltip-league">Crea Lega</Tooltip>}
+                  >
+                    <Button
+                      variant="link"
+                      onClick={() => setShowLeagueForm((val) => !val)}
+                      disabled={!!createdLeague}
+                    >
+                      <i className="bi bi-plus-lg text-light fs-3"></i>
+                    </Button>
+                  </OverlayTrigger>
+                  {/* Bottone invito giocatori */}
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id="tooltip-invita">Invita Giocatori</Tooltip>
+                    }
+                  >
+                    <Button
+                      variant="link"
+                      onClick={() => setShowInviteForm((val) => !val)}
+                      disabled={!createdLeague}
+                    >
+                      <i className="bi bi-person-fill-add text-light fs-4"></i>
+                    </Button>
+                  </OverlayTrigger>
+                </div>
+                {/* Form creazione lega */}
+                {showLeagueForm && (
+                  <Form onSubmit={handleCreateLeague} className="mt-3">
+                    <InputGroup>
+                      <Form.Control
+                        type="text"
+                        placeholder="Nome lega"
+                        value={leagueName}
+                        onChange={(e) => setLeagueName(e.target.value)}
+                        required
+                      />
+                      <Button
+                        type="submit"
+                        variant="danger"
+                        disabled={!leagueName}
+                      >
+                        Crea
+                      </Button>
+                    </InputGroup>
+                  </Form>
+                )}
+                {/* Visualizzazione lega creata */}
+                {createdLeague && (
+                  <div className="mt-3">
+                    <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
+                      {createdLeague.name}
+                    </h5>
+                    {createdLeague.codiceInvito && (
+                      <div style={{ margin: "10px 0" }}>
+                        <span>
+                          Codice invito: <b>{createdLeague.codiceInvito}</b>
+                        </span>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline-danger"
+                      className="mt-3"
+                      onClick={() => {
+                        handleDeleteLeague();
+                      }}
+                    >
+                      Elimina/Esci dalla lega
+                    </Button>
+                  </div>
+                )}
+                {/* Form invito giocatore (solo se hai una lega) */}
+                {showInviteForm && createdLeague && (
+                  <Form onSubmit={handleInvitePlayer} className="mt-3">
+                    <InputGroup>
+                      <Form.Control
+                        type="text"
+                        placeholder="Username giocatore"
+                        value={inviteUsername}
+                        onChange={(e) => setInviteUsername(e.target.value)}
+                        required
+                      />
+                      <Form.Control
+                        type="email"
+                        placeholder="Email giocatore"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                      />
+                      <Button type="submit" variant="primary">
+                        Invita
+                      </Button>
+                    </InputGroup>
+                  </Form>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
           {/* ----------- CARD SQUADRA -------------- */}
           <Col xs={12} sm={12} lg={5}>
             <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
@@ -398,117 +531,6 @@ function Team() {
                       Elimina squadra
                     </Button>
                   </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-          {/* ----------- CARD LEGA -------------- */}
-          <Col xs={12} sm={12} lg={7}>
-            <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
-              <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
-                <div className="d-flex justify-content-center align-items-center gap-2">
-                  <h2>La mia lega</h2>
-                  {/* Bottone per mostrare/nascondere il form lega */}
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={<Tooltip id="tooltip-league">Crea Lega</Tooltip>}
-                  >
-                    <Button
-                      variant="link"
-                      onClick={() => setShowLeagueForm((val) => !val)}
-                      disabled={!!createdLeague}
-                    >
-                      <i className="bi bi-plus-lg text-light fs-3"></i>
-                    </Button>
-                  </OverlayTrigger>
-                  {/* Bottone invito giocatori */}
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id="tooltip-invita">Invita Giocatori</Tooltip>
-                    }
-                  >
-                    <Button
-                      variant="link"
-                      onClick={() => setShowInviteForm((val) => !val)}
-                      disabled={!createdLeague}
-                    >
-                      <i className="bi bi-person-fill-add text-light fs-4"></i>
-                    </Button>
-                  </OverlayTrigger>
-                </div>
-                {/* Form creazione lega */}
-                {showLeagueForm && (
-                  <Form onSubmit={handleCreateLeague} className="mt-3">
-                    <InputGroup>
-                      <Form.Control
-                        type="text"
-                        placeholder="Nome lega"
-                        value={leagueName}
-                        onChange={(e) => setLeagueName(e.target.value)}
-                        required
-                      />
-                      <Button
-                        type="submit"
-                        variant="danger"
-                        disabled={!leagueName}
-                      >
-                        Crea
-                      </Button>
-                    </InputGroup>
-                  </Form>
-                )}
-                {/* Visualizzazione lega creata */}
-                {createdLeague && (
-                  <div className="mt-3">
-                    <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
-                      {createdLeague.name}
-                    </h5>
-                    {createdLeague.codiceInvito && (
-                      <div style={{ margin: "10px 0" }}>
-                        <span>
-                          Codice invito: <b>{createdLeague.codiceInvito}</b>
-                        </span>
-                      </div>
-                    )}
-                    <Button
-                      onSubmit={handleDeleteLeague}
-                      variant="outline-danger"
-                      className="mt-3"
-                      onClick={() => {
-                        setCreatedLeague(null);
-                        setLeagueName("");
-                        setLegaCreataId(null);
-                        setShowLeagueForm(false);
-                        setShowInviteForm(false);
-                      }}
-                    >
-                      Elimina/Esci dalla lega
-                    </Button>
-                  </div>
-                )}
-                {/* Form invito giocatore (solo se hai una lega) */}
-                {showInviteForm && createdLeague && (
-                  <Form onSubmit={handleInvitePlayer} className="mt-3">
-                    <InputGroup>
-                      <Form.Control
-                        type="text"
-                        placeholder="Username giocatore"
-                        value={inviteUsername}
-                        onChange={(e) => setInviteUsername(e.target.value)}
-                        required
-                      />
-                      <Form.Control
-                        type="email"
-                        placeholder="Email giocatore"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                      />
-                      <Button type="submit" variant="primary">
-                        Invita
-                      </Button>
-                    </InputGroup>
-                  </Form>
                 )}
               </Card.Body>
             </Card>

@@ -5,6 +5,7 @@ import mattiapastorini.CapStone_FantaF1.Payloads.*;
 import mattiapastorini.CapStone_FantaF1.Repositories.*;
 import mattiapastorini.CapStone_FantaF1.Services.FantaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,17 +61,18 @@ public class FantaController {
 
     // Crea una lega
     @PostMapping("/lega/creazione")
-    public ResponseEntity<?> creazioneLega(@RequestBody LegaDTO legaDTO) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Lega creazioneLega(@RequestBody LegaDTO legaDTO) {
         Lega creata = fantaService.creazioneLega(legaDTO.name(), legaDTO.presidentId());
-        return ResponseEntity.ok(creata);
+        return creata;
     }
 
     // Invita un amico a una lega (per email o username)
-    @PostMapping("/lega/invito")
-    public ResponseEntity<?> invito(@RequestBody InvitoDTO invitoDTO) {
-        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
-        return ok ? ResponseEntity.ok("Invitato!") : ResponseEntity.status(404).body("Utente non trovato");
-    }
+//    @PostMapping("/lega/invito")
+//    public Invito invito(@RequestBody InvitoDTO invitoDTO) {
+//        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
+//        return ok ? ResponseEntity.ok("Invitato!") : ResponseEntity.status(404).body("Utente non trovato");
+//    }
 
     // Un utente entra in lega tramite codice invito
     @PostMapping("/lega/partecipazione")
@@ -108,22 +110,21 @@ public class FantaController {
 
 
     @DeleteMapping("/team/elimina/{id}")
-    public ResponseEntity<?> eliminaTeam(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaTeam(@PathVariable Long id) {
         if (teamRepository.existsById(id)) {
             teamRepository.deleteById(id);
-            return ResponseEntity.ok(Map.of("message", "Squadra eliminata"));
-        } else {
-            return ResponseEntity.status(404).body(Map.of("message", "Squadra non trovata"));
+
         }
     }
 
     @DeleteMapping("/lega/elimina/{id}")
-    public ResponseEntity<?> eliminaLega(@PathVariable Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaLega(@PathVariable Long id) {
+
         if (legaRepository.existsById(id)) {
             legaRepository.deleteById(id);
-            return ResponseEntity.ok(Map.of("message", "Lega eliminata"));
-        } else {
-            return ResponseEntity.status(404).body(Map.of("message", "Lega non trovata"));
+
         }
     }
 

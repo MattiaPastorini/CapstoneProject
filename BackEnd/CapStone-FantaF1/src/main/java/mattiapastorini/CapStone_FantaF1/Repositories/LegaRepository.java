@@ -14,5 +14,6 @@ public interface LegaRepository extends JpaRepository<Lega, Long> {
 
     Lega findByMembers_Id(Long id);
 
+    Optional<Lega> findById(Long id);
 
 }
