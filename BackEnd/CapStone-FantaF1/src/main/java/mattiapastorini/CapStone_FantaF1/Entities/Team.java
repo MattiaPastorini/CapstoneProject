@@ -19,13 +19,14 @@ public class Team {
     @ManyToOne
     private User president;   //presidente della squadra
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "team_piloti",
             joinColumns = @JoinColumn(name = "team_id"),
             inverseJoinColumns = @JoinColumn(name = "pilota_id")
     )
     private Set<Pilota> piloti = new HashSet<>();
+
 
 
     @ManyToOne

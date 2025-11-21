@@ -13,14 +13,13 @@ public class TeamResponsePayload {
     public String legaName;
 
     public TeamResponsePayload(Team team) {
-
-
         this.name = team.getName();
-        this.piloti = team.getPiloti() != null
-                ? team.getPiloti().stream().map(Pilota::getId).collect(Collectors.toList())
-                : List.of(); // Nessun pilota
+        this.piloti = team.getPiloti() == null
+                ? List.of()
+                : team.getPiloti().stream().map(Pilota::getId).toList();
         this.legaId = team.getLega().getId();
         this.legaName = team.getLega().getName();
     }
+
 }
 

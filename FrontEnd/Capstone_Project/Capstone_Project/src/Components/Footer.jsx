@@ -5,10 +5,7 @@ import "../App.css";
 
 function Footer() {
   return (
-    <footer
-      className="bg-dark text-light pb-3 pt-4 mt-4"
-      style={{ borderTop: "1px solid #444" }}
-    >
+    <footer className="bg-dark text-light pb-3 pt-4 mt-4">
       <Container>
         <Row className="text-center text-md-start">
           {/* Colonna 1: Link principali */}

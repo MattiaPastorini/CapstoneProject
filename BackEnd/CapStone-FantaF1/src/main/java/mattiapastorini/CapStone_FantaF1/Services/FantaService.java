@@ -48,10 +48,21 @@ public class FantaService {
         team.setName(name);
         team.setPresident(president);
         team.setLega(lega);
+
+        // Carica i piloti scelti
         List<Pilota> piloti = pilotaRepository.findAllById(pilotiId);
+
+        // Associa piloti al team (ManyToMany, con cascade)
         team.getPiloti().addAll(piloti);
+
+        // PATCH: aggiorna anche il lato Pilota (relazione bidirezionale!)
+        for (Pilota p : piloti) {
+            p.getTeams().add(team);
+        }
+
         return teamRepository.save(team);
     }
+
 
     // QUERY AGGIORNATA: piloti sono caricati già nella entity grazie al JOIN FETCH, niente concurrent!
     public List<Team> getTeamsByPresident(Long userId) {
@@ -125,4 +136,13 @@ public class FantaService {
         if (president == null || lega == null) return null;
         return teamRepository.findByPresidentAndLega(president, lega);
     }
+
+    public void eliminaTeam(Long teamId) {
+        teamRepository.deleteById(teamId);
+    }
+
+    public void eliminaLega(Long legaId) {
+        legaRepository.deleteById(legaId);
+    }
+
 }
