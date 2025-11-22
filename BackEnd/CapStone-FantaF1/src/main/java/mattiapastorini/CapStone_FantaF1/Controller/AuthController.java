@@ -3,6 +3,7 @@ package mattiapastorini.CapStone_FantaF1.Controller;
 import mattiapastorini.CapStone_FantaF1.Payloads.LoginDTO;
 import mattiapastorini.CapStone_FantaF1.Payloads.NewUserDTO;
 import mattiapastorini.CapStone_FantaF1.Entities.User;
+import mattiapastorini.CapStone_FantaF1.Security.JWTTools;
 import mattiapastorini.CapStone_FantaF1.Services.UserService;
 import mattiapastorini.CapStone_FantaF1.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,28 +22,38 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JWTTools jwtTools;
+
 
     // Registrazione
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody NewUserDTO newUserDto) {
-        if (userService.register(newUserDto)) {
-            // Risposta OK
-            return ResponseEntity.ok(Map.of("message", "ok"));
+    public Map<String, Object> register(@RequestBody NewUserDTO newUserDto) {
+        boolean success = userService.register(newUserDto);
+        if (success) {
+            return Map.of("message", "ok");
         } else {
-            // Risposta ERRORE: Usa un oggetto Map!
-            return ResponseEntity.status(409).body(Map.of("message", "Email in uso"));
+            return Map.of("message", "Email in uso");
         }
     }
 
 
     // Login
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDto) {
+    public Map<String, Object> login(@RequestBody LoginDTO loginDto) {
         Optional<User> user = userRepository.findByEmail(loginDto.email());
         if (user.isPresent() && user.get().getPassword().equals(loginDto.password())) {
-            return ResponseEntity.ok(user.get());
+            String accessToken = jwtTools.createToken(user.get());
+            System.out.println("token generato: " + accessToken);
+            // Risposta OK: id, username, accessToken
+            return Map.of(
+                    "id", user.get().getId(),
+                    "username", user.get().getUsername(),
+                    "accessToken", accessToken
+            );
         } else {
-            return ResponseEntity.status(401).body(Map.of("message", "Credenziali errate"));
+            // Risposta ERRORE (puoi anche definire uno status personalizzato se vuoi)
+            return Map.of("message", "Credenziali errate");
         }
     }
 

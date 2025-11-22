@@ -10,29 +10,34 @@ function Login({ setIsAuthenticated }) {
   const [showPassword, setShowPassword] = useState(false);
 
   // Funzione di login
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:3002/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+    fetch("http://localhost:3002/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((response) =>
+        response
+          .json()
+          .then((result) => ({ status: response.status, body: result }))
+      )
+      .then(({ status, body }) => {
+        if (status === 200 && body.accessToken) {
+          localStorage.setItem("accessToken", body.accessToken);
+          console.log("AccessToken salvato:", body.accessToken);
+          localStorage.setItem("userId", body.id);
+          localStorage.setItem("username", body.username);
+          setMessage("Login riuscito!");
+          setIsAuthenticated(true);
+          navigate("/team");
+        } else {
+          setMessage(body.message || "Email o password errati.");
+        }
+      })
+      .catch((error) => {
+        setMessage("Errore di connessione al server.", error);
       });
-
-      const result = await response.json();
-
-      if (response.ok && result && typeof result.id === "number") {
-        localStorage.setItem("userId", result.id);
-        localStorage.setItem("username", result.username);
-        setMessage("Login riuscito!");
-        setIsAuthenticated(true);
-        navigate("/team");
-      } else {
-        setMessage(result.message || "Email o password errati.");
-      }
-    } catch (error) {
-      setMessage("Errore di connessione al server.", error);
-    }
   };
 
   return (

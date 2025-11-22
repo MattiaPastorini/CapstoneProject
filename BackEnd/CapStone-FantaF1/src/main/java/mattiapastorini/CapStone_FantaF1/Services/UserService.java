@@ -51,4 +51,10 @@ public class UserService {
         return utente.isPresent() && utente.get().getPassword().equals(password);
     }
 
+    // Trova un utente per ID, lancia eccezione se non trovato
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato con ID: " + id));
+    }
+
 }

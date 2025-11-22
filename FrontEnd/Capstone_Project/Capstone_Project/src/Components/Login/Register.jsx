@@ -17,30 +17,33 @@ function Register() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:3002/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+    fetch("http://localhost:3002/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+      .then((response) =>
+        response
+          .json()
+          .then((result) => ({ status: response.status, body: result }))
+      )
+      .then(({ status, body }) => {
+        if (status === 200) {
+          setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
+          setFormData({ username: "", email: "", password: "" });
+          setTimeout(() => navigate("/login"), 1500);
+        } else {
+          setMessage(
+            body.message ||
+              "Registrazione fallita. Email già registrata o dati errati."
+          );
+        }
+      })
+      .catch((error) => {
+        setMessage("Errore di connessione al server.", error);
       });
-
-      const result = await response.json(); // ora la risposta è SEMPRE JSON!
-
-      if (response.ok) {
-        setMessage("Registrazione avvenuta con successo! Ora puoi accedere.");
-        setFormData({ username: "", email: "", password: "" });
-        setTimeout(() => navigate("/login"), 1500);
-      } else {
-        setMessage(
-          result.message ||
-            "Registrazione fallita. Email già registrata o dati errati."
-        );
-      }
-    } catch (error) {
-      setMessage("Errore di connessione al server.", error);
-    }
   };
 
   return (

@@ -53,6 +53,11 @@ const fascePiloti = [
 
 const getLoggedUserId = () => localStorage.getItem("userId");
 
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+});
+
 function Team() {
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [showLeagueForm, setShowLeagueForm] = useState(false);
@@ -70,7 +75,6 @@ function Team() {
 
   const [createdTeam, setCreatedTeam] = useState(null);
   const [createdLeague, setCreatedLeague] = useState(null);
-
   const [legaCreataId, setLegaCreataId] = useState(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
@@ -78,20 +82,26 @@ function Team() {
   useEffect(() => {
     const userId = getLoggedUserId();
 
-    // Recupera squadra (mappa piloti -> pilotiSelezionati)
-    fetch(`http://localhost:3002/api/team/utente/${userId}`)
+    // Recupera squadra
+    fetch(`http://localhost:3002/api/team/utente/${userId}`, {
+      headers: authHeaders(),
+      credentials: "include",
+    })
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setCreatedTeam({
             name: data[0].name,
-            pilotiSelezionati: data[0].piloti, // <-- qui mappo corretto
+            pilotiSelezionati: data[0].piloti,
           });
         }
       });
 
     // Recupera lega
-    fetch(`http://localhost:3002/api/lega/utente/${userId}`)
+    fetch(`http://localhost:3002/api/lega/utente/${userId}`, {
+      headers: authHeaders(),
+      credentials: "include",
+    })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && data.name) {
@@ -118,7 +128,7 @@ function Team() {
     const loggedUserId = Number(getLoggedUserId());
     fetch("http://localhost:3002/api/team/creazione", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         name: teamName,
         presidentId: loggedUserId,
@@ -147,7 +157,7 @@ function Team() {
     const loggedUserId = getLoggedUserId();
     fetch("http://localhost:3002/api/lega/creazione", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         name: leagueName,
         presidentId: loggedUserId,
@@ -180,7 +190,7 @@ function Team() {
     }
     const res = await fetch("http://localhost:3002/api/lega/invito", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({
         legaId: legaCreataId,
         username: inviteUsername,
@@ -206,7 +216,7 @@ function Team() {
   const handleDeleteTeam = () => {
     fetch(`http://localhost:3002/api/team/elimina/${createdTeam.id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
     }).then((res) => {
       if (res.ok) {
         setCreatedTeam(null);
@@ -223,7 +233,7 @@ function Team() {
   const handleDeleteLeague = () => {
     fetch(`http://localhost:3002/api/lega/elimina/${createdLeague.id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
     })
       .then((res) => {
         if (res.ok) {
