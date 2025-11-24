@@ -166,12 +166,14 @@ public class FantaController {
             Map<String, Object> mappa = new HashMap<>();
             mappa.put("id", invito.getId());
             mappa.put("legaId", invito.getLegaId());
+            // Recupera la lega e inserisci codiceInvito
+            legaRepository.findById(invito.getLegaId()).ifPresent(lega ->
+                    mappa.put("codiceInvito", lega.getCodiceInvito()));
             mappa.put("message", invito.getMessage());
             mappa.put("accepted", invito.isAccepted());
             return mappa;
         }).collect(Collectors.toList());
     }
-
 
 
 }

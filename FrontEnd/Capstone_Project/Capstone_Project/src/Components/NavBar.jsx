@@ -24,11 +24,11 @@ function NavBar() {
   });
 
   // --- ACCETTA INVITO ---
-  function accettaInvito(legaId, userId, invitoId) {
+  function accettaInvito(codiceInvito, userId, invitoId) {
     fetch("http://localhost:3002/api/lega/partecipazione", {
       method: "POST",
       headers: authHeaders(),
-      body: JSON.stringify({ codiceInvito: String(legaId), userId }),
+      body: JSON.stringify({ codiceInvito, userId }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -145,7 +145,7 @@ function NavBar() {
                             size="sm"
                             onClick={() =>
                               accettaInvito(
-                                notif.legaId,
+                                notif.codiceInvito,
                                 localStorage.getItem("userId"),
                                 notif.id
                               )

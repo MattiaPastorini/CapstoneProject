@@ -128,10 +128,13 @@ public class FantaService {
             Lega lega = optLega.get();
             User user = userRepository.findById(userId).orElseThrow();
             if (userHasLeague(user)) return false;
-            return lega.getMembers().add(user);
+            lega.getMembers().add(user);                // AGGIUNGI
+            legaRepository.save(lega);                  // SALVA LA LEGA
+            return true;
         }
         return false;
     }
+
 
     private boolean userHasLeague(User user) {
         return legaRepository.findByMembers_Id(user.getId()) != null
