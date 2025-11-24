@@ -20,6 +20,9 @@ public class Team {
     @ManyToOne
     private User president;   //presidente della squadra
 
+    @Column(name = "punti", nullable = false)
+    private int punti = 0;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "team_piloti",

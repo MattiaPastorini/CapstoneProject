@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record TeamDTO(
+        Long id,
         @NotBlank(message = "Il nome della squadra è obbligatorio!")
         String name,
         @NotNull(message = "L'ID del presidente è obbligatorio")

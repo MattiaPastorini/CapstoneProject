@@ -1,9 +1,11 @@
 package mattiapastorini.CapStone_FantaF1.Services;
 
 import mattiapastorini.CapStone_FantaF1.Entities.*;
+import mattiapastorini.CapStone_FantaF1.Exceptions.ResourceNotFoundException;
 import mattiapastorini.CapStone_FantaF1.Repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -147,6 +149,21 @@ public class FantaService {
         Lega found = legaRepository.findById(legaId).orElseThrow(() -> new RuntimeException("Lega non trovata!"));
         found.getMembers().clear();
         legaRepository.deleteById(legaId);
+    }
+
+
+//      Aggiorna i punti di una squadra
+//
+//      @param teamId id del team da aggiornare
+//      @param nuoviPunti nuovo punteggio da assegnare
+//      @return il team aggiornato
+
+    @Transactional
+    public Team aggiornaPuntiTeam(Long teamId, int nuoviPunti) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team non trovato!"));
+        team.setPunti(nuoviPunti);
+        return teamRepository.save(team); // restituisce l'entità aggiornata
     }
 
 }

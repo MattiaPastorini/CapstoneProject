@@ -53,6 +53,21 @@ public class FantaController {
     }
 
 
+//      Aggiorna i punti di una squadra col metodo PUT
+//      Esempio chiamata: PUT /api/team/123/punti con body { "punti": 85 }
+
+    @PutMapping("/team/{teamId}/punti")
+    public TeamResponsePayload aggiornaPuntiTeam(
+            @PathVariable Long teamId,
+            @RequestBody Map<String, Integer> body) {
+        if (!body.containsKey("punti"))
+            throw new IllegalArgumentException("Body deve contenere il campo 'punti'");
+        int nuoviPunti = body.get("punti");
+        Team teamAggiornato = fantaService.aggiornaPuntiTeam(teamId, nuoviPunti);
+        return new TeamResponsePayload(teamAggiornato); // usa il tuo payload, NON restituire entity pura
+    }
+
+
     // Crea una lega
     @PostMapping("/lega/creazione")
     @ResponseStatus(HttpStatus.CREATED)
@@ -60,6 +75,24 @@ public class FantaController {
         Lega creata = fantaService.creazioneLega(legaDTO.name(), legaDTO.presidentId());
         return creata;
     }
+
+    @GetMapping("/lega/classifica/{legaId}")
+    public List<Map<String, Object>> getClassificaLega(@PathVariable Long legaId) {
+        Lega lega = legaRepository.findById(legaId).orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        // Per ogni membro, prendi nome, nome squadra, punti!
+        return lega.getMembers().stream()
+                .map(user -> {
+                    Team team = teamRepository.findByPresidentAndLega(user, lega);
+                    int punti = (team != null) ? team.getPunti() : 0; // supponendo che Team abbia un campo 'punti'
+                    Map<String, Object> entry = new HashMap<>();
+                    entry.put("nome", user.getUsername());
+                    entry.put("squadra", team != null ? team.getName() : "");
+                    entry.put("punti", punti);
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+
 
     // Invita un amico a una lega (per email o username)
     @PostMapping("/lega/invito")

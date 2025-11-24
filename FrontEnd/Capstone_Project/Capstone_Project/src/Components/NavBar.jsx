@@ -22,16 +22,25 @@ function NavBar() {
   // Stato notifiche
   const [notifications, setNotifications] = useState([]);
 
+  const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+  });
+
   useEffect(() => {
     if (isLoggedIn) {
       const userId = localStorage.getItem("userId");
-      fetch(`http://localhost:3002/api/notifiche/${userId}`)
+      fetch(`http://localhost:3002/api/notifiche/${userId}`, {
+        headers: authHeaders(),
+        credentials: "include",
+      })
         .then((res) => res.json())
         .then((data) => setNotifications(data))
         .catch(() => setNotifications([]));
       console.log("User ID:", userId);
     }
   }, [isLoggedIn]);
+
   return (
     <>
       {/* NAVBAR SUPERIORE */}{" "}

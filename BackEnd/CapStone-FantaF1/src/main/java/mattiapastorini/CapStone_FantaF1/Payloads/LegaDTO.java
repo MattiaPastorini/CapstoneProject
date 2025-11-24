@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record LegaDTO(
+        Long id,
         @NotBlank(message = "Il nome della lega è obbligatorio!")
         String name,
         @NotNull(message = "L'ID del presidente è obbligatorio")
