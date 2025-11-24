@@ -26,6 +26,9 @@ public class FantaService {
     @Autowired
     private PilotaRepository pilotaRepository;
 
+    @Autowired
+    private InvitoRepository invitoRepository;
+
     // Crea squadra
     public Team creazioneTeam(String name, Long presidentId, List<Long> pilotiId, Long legaId) {
         if (presidentId == null) {
@@ -90,16 +93,33 @@ public class FantaService {
 
     // Invita (aggiungi membro per email/username)
     public boolean invitoAllaLega(Long legaId, String username, String email) {
-        Lega lega = legaRepository.findById(legaId).orElseThrow();
-        Optional<User> friend = email.contains("@")
-                ? userRepository.findByEmail(email)
-                : userRepository.findByUsername(username);
-
-        if (friend.isPresent()) {
-            return lega.getMembers().add(friend.get());
+        // Cerca l'utente destinatario tramite username, se non trovato cerca via email
+        User destinatario = null;
+        if (username != null && !username.isBlank()) {
+            destinatario = userRepository.findByUsername(username).orElse(null);
         }
-        return false;
+        if (destinatario == null && email != null && !email.isBlank()) {
+            destinatario = userRepository.findByEmail(email).orElse(null);
+        }
+        if (destinatario == null) return false; // Utente non trovato
+
+        // Verifica che non sia già invitato
+        if (invitoRepository.findByUserIdAndAcceptedFalse(destinatario.getId()).stream()
+                .anyMatch(i -> i.getLegaId().equals(legaId))) {
+            return false; // Già invitato a questa lega e non ha ancora accettato
+        }
+
+        // Crea l'invito
+        Invito invito = new Invito();
+        invito.setUserId(destinatario.getId());
+        invito.setLegaId(legaId);
+        invito.setAccepted(false); // Stato iniziale
+        invito.setMessage("Sei stato invitato alla lega!");
+
+        invitoRepository.save(invito);
+        return true;
     }
+
 
     // Join tramite codice invito
     public boolean partecipazioneAllaLega(String code, Long userId) {

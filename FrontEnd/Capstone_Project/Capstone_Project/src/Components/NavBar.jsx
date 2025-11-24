@@ -6,27 +6,43 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Dropdown from "react-bootstrap/Dropdown";
+import Button from "react-bootstrap/Button";
 
 function NavBar() {
   // Verifica login
   const isLoggedIn = !!localStorage.getItem("userId");
   const username = localStorage.getItem("username");
+  const navigate = useNavigate();
 
-  const navigate = useNavigate(); // Funzione Logout
-
-  const handleLogout = () => {
-    localStorage.removeItem("userId");
-    navigate("/login");
-  };
-
-  // Stato notifiche
+  // Stato notifiche e messaggio
   const [notifications, setNotifications] = useState([]);
+  const [message, setMessage] = useState("");
 
   const authHeaders = () => ({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
   });
 
+  // --- ACCETTA INVITO ---
+  function accettaInvito(legaId, userId, invitoId) {
+    fetch("http://localhost:3002/api/lega/partecipazione", {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ codiceInvito: String(legaId), userId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setMessage("Hai accettato l'invito!");
+          setNotifications((prev) => prev.filter((n) => n.id !== invitoId));
+        } else {
+          setMessage(data.message || "Errore nell'accettazione.");
+        }
+        setTimeout(() => setMessage(""), 3000);
+      });
+  }
+
+  // --- FETCH NOTIFICHE ALL'AVVIO LOGIN ---
   useEffect(() => {
     if (isLoggedIn) {
       const userId = localStorage.getItem("userId");
@@ -37,13 +53,20 @@ function NavBar() {
         .then((res) => res.json())
         .then((data) => setNotifications(data))
         .catch(() => setNotifications([]));
-      console.log("User ID:", userId);
     }
   }, [isLoggedIn]);
 
   return (
     <>
-      {/* NAVBAR SUPERIORE */}{" "}
+      {/* FEEDBACK INVITI - appare al centro alto e sparisce dopo 3 sec */}
+      {message && (
+        <div
+          className="position-fixed top-0 start-50 translate-middle-x mt-2"
+          style={{ zIndex: 3000 }}
+        >
+          <div className="alert alert-success py-2 px-4">{message}</div>
+        </div>
+      )}
       <Navbar
         bg="dark"
         variant="dark"
@@ -51,7 +74,6 @@ function NavBar() {
         className="sticky-top"
       >
         <Container fluid className="px-3">
-          {/* Logo */}
           <Navbar.Brand as={Link} to="/">
             <img
               style={{ width: "48px" }}
@@ -59,7 +81,6 @@ function NavBar() {
               alt="logo f1"
             />
           </Navbar.Brand>
-
           <div className="d-none d-lg-flex flex-grow-1 align-items-center">
             <Nav className="me-auto">
               <Nav.Link
@@ -69,7 +90,6 @@ function NavBar() {
               >
                 <i className="bi bi-people me-1"></i>Team
               </Nav.Link>
-
               <Nav.Link
                 as={Link}
                 to="/classifiche"
@@ -77,27 +97,23 @@ function NavBar() {
               >
                 <i className="bi bi-trophy me-1"></i>Classifica
               </Nav.Link>
-
               <Nav.Link
                 as={Link}
                 to="/news"
                 className="text-secondary link-light"
               >
-                <i className="bi bi-newspaper me-1"></i>
-                Notizie
+                <i className="bi bi-newspaper me-1"></i>Notizie
               </Nav.Link>
-
               <Nav.Link
                 as={Link}
                 to="/regolamento"
                 className="text-secondary link-light"
               >
-                <i className="bi bi-file-earmark-text me-1"></i>
-                Regolamento
+                <i className="bi bi-file-earmark-text me-1"></i>Regolamento
               </Nav.Link>
             </Nav>
             <Nav>
-              {/* 🔔 Notifiche MOSTRATE SOLO SE LOGGATO */}
+              {/* Notifiche Inviti */}
               {isLoggedIn && (
                 <Dropdown align="end">
                   <Dropdown.Toggle
@@ -110,11 +126,34 @@ function NavBar() {
                       style={{ fontSize: "1.2em" }}
                     ></i>
                   </Dropdown.Toggle>
-
-                  <Dropdown.Menu style={{ minWidth: "250px" }}>
+                  <Dropdown.Menu style={{ minWidth: "260px" }}>
                     {notifications && notifications.length > 0 ? (
-                      notifications.map((notif, index) => (
-                        <Dropdown.Item key={index}>{notif}</Dropdown.Item>
+                      notifications.map((notif) => (
+                        <Dropdown.Item
+                          key={notif.id}
+                          className="d-flex justify-content-between align-items-center"
+                        >
+                          <div>
+                            {notif.message}
+                            <br />
+                            <span style={{ fontSize: "0.8em", color: "#ccc" }}>
+                              (Lega ID: {notif.legaId})
+                            </span>
+                          </div>
+                          <Button
+                            variant="outline-success"
+                            size="sm"
+                            onClick={() =>
+                              accettaInvito(
+                                notif.legaId,
+                                localStorage.getItem("userId"),
+                                notif.id
+                              )
+                            }
+                          >
+                            Accetta
+                          </Button>
+                        </Dropdown.Item>
                       ))
                     ) : (
                       <Dropdown.ItemText className="text-muted">
@@ -125,11 +164,13 @@ function NavBar() {
                 </Dropdown>
               )}
             </Nav>
-
-            {/* Tasto Logout o Omino desktop */}
+            {/* Logout e Profilo */}
             {isLoggedIn ? (
               <Nav.Link
-                onClick={handleLogout}
+                onClick={() => {
+                  localStorage.removeItem("userId");
+                  navigate("/login");
+                }}
                 className="text-secondary link-light"
                 style={{ cursor: "pointer" }}
               >
@@ -158,7 +199,10 @@ function NavBar() {
           <div className="d-flex d-lg-none align-items-center ms-auto">
             {isLoggedIn ? (
               <Nav.Link
-                onClick={handleLogout}
+                onClick={() => {
+                  localStorage.removeItem("userId");
+                  navigate("/login");
+                }}
                 className="text-secondary link-light"
                 style={{ cursor: "pointer" }}
               >
@@ -176,10 +220,10 @@ function NavBar() {
               </Nav.Link>
             )}
           </div>
-        </Container>{" "}
+        </Container>
       </Navbar>
-      {/* Navbar inferiore per mobile/tablet */}{" "}
-      <Navbar fixed="bottom" bg="dark" variant="dark" className="d-lg-none ">
+      {/* Navbar inferiore per mobile/tablet */}
+      <Navbar fixed="bottom" bg="dark" variant="dark" className="d-lg-none">
         <Nav className="w-100 justify-content-around">
           <Nav.Link
             as={Link}
@@ -188,7 +232,6 @@ function NavBar() {
           >
             <i className="bi bi-people"></i>Team
           </Nav.Link>
-
           <Nav.Link
             as={Link}
             to="/classifiche"
@@ -196,7 +239,6 @@ function NavBar() {
           >
             <i className="bi bi-people"></i>Classifica
           </Nav.Link>
-
           <Nav.Link
             as={Link}
             to="/news"
@@ -205,7 +247,6 @@ function NavBar() {
             <i className="bi bi-newspaper"></i>
             <span style={{ fontSize: "0.85em" }}>Notizie</span>
           </Nav.Link>
-
           <Nav.Link
             as={Link}
             to="/regolamento"
@@ -214,8 +255,8 @@ function NavBar() {
             <i className="bi bi-file-earmark-text"></i>
             <span style={{ fontSize: "0.85em" }}>Regolamento</span>
           </Nav.Link>
-        </Nav>{" "}
-      </Navbar>{" "}
+        </Nav>
+      </Navbar>
     </>
   );
 }
