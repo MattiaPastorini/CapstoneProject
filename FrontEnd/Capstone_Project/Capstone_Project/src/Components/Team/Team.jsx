@@ -444,8 +444,10 @@ function Team() {
                         {[...classificaLega]
                           .sort(
                             (a, b) =>
-                              calcolaPuntiSquadra(b.piloti, classificaPiloti) -
-                              calcolaPuntiSquadra(a.piloti, classificaPiloti)
+                              calcolaPuntiSquadra(b.piloti, classificaPiloti) +
+                              (bonusMalus[b.teamId] ?? 0) -
+                              (calcolaPuntiSquadra(a.piloti, classificaPiloti) +
+                                (bonusMalus[a.teamId] ?? 0))
                           )
                           .map((entry, idx) => (
                             <tr
