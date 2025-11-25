@@ -76,18 +76,39 @@ public class FantaController {
         return creata;
     }
 
+    //    @GetMapping("/lega/classifica/{legaId}")
+//    public List<Map<String, Object>> getClassificaLega(@PathVariable Long legaId) {
+//        Lega lega = legaRepository.findById(legaId).orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+//        // Per ogni membro, prendi nome, nome squadra, punti!
+//        return lega.getMembers().stream()
+//                .map(user -> {
+//                    Team team = teamRepository.findByPresidentAndLega(user, lega);
+//                    int punti = (team != null) ? team.getPunti() : 0; // supponendo che Team abbia un campo 'punti'
+//                    Map<String, Object> entry = new HashMap<>();
+//                    entry.put("nome", user.getUsername());
+//                    entry.put("squadra", team != null ? team.getName() : "");
+//                    entry.put("punti", punti);
+//                    return entry;
+//                })
+//                .collect(Collectors.toList());
+//    }
     @GetMapping("/lega/classifica/{legaId}")
     public List<Map<String, Object>> getClassificaLega(@PathVariable Long legaId) {
         Lega lega = legaRepository.findById(legaId).orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
-        // Per ogni membro, prendi nome, nome squadra, punti!
         return lega.getMembers().stream()
                 .map(user -> {
                     Team team = teamRepository.findByPresidentAndLega(user, lega);
-                    int punti = (team != null) ? team.getPunti() : 0; // supponendo che Team abbia un campo 'punti'
+                    int punti = (team != null) ? team.getPunti() : 0;
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("nome", user.getUsername());
                     entry.put("squadra", team != null ? team.getName() : "");
                     entry.put("punti", punti);
+                    if (team != null && team.getPiloti() != null) {
+                        entry.put("piloti", team.getPiloti().stream().map(Pilota::getId).toList());
+                        entry.put("teamId", team.getId());
+                    } else {
+                        entry.put("piloti", List.of());
+                    }
                     return entry;
                 })
                 .collect(Collectors.toList());
