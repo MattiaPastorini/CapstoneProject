@@ -29,11 +29,12 @@ function App() {
             <Route
               path="/team"
               element={
-                <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <ProtectedRoute>
                   <Team />
                 </ProtectedRoute>
               }
             />
+
             <Route path="/regolamento" element={<Regolamento />} />
             <Route path="/news" element={<NewsPage />} />
             <Route
