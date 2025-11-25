@@ -116,6 +116,8 @@ function Team() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
   const [classificaLega, setClassificaLega] = useState([]);
+  const [bonusMalus, setBonusMalus] = useState({}); // {teamId: valore}
+
   // const [editPunti, setEditPunti] = useState({}); // Oggetto con chiave teamId
   // const [editingTeamId, setEditingTeamId] = useState(null);
 
@@ -394,52 +396,117 @@ function Team() {
                   )}
                 </div>
               )}
+
               {/* MOSTRA CLASSIFICA LEGA F1 */}
               {createdLeague && classificaLega.length > 0 && (
                 <div className="mt-4">
                   <h4 style={{ color: "#fff", fontWeight: "bold" }}>
                     Classifica Lega
                   </h4>
-                  <table
-                    className="table table-dark table-striped my-3 mx-auto"
-                    style={{ maxWidth: 500 }}
-                  >
-                    <thead>
-                      <tr>
-                        <th>Pos</th>
-                        <th>Nome</th>
-                        <th>Squadra</th>
-                        <th>Punti</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...classificaLega]
-                        .sort(
-                          (a, b) =>
-                            calcolaPuntiSquadra(b.piloti, classificaPiloti) -
-                            calcolaPuntiSquadra(a.piloti, classificaPiloti)
-                        )
-                        .map((entry, idx) => (
-                          <tr key={entry.teamId || entry.nome + entry.squadra}>
-                            <td>{idx + 1}</td>
-                            <td>{entry.nome}</td>
-                            <td>{entry.squadra}</td>
-                            <td
-                              style={{ fontWeight: "bold", color: "#ffd200" }}
+                  <div className="table-responsive">
+                    <table
+                      className="table table-dark table-striped my-3 mx-auto"
+                      style={{
+                        fontSize: "0.93em",
+                        maxWidth: "100%",
+                        tableLayout: "fixed",
+                      }}
+                    >
+                      <thead>
+                        <tr>
+                          <th style={{ width: "35px" }}>Pos</th>
+                          <th style={{ width: "90px" }}>Nome</th>
+                          {/* Nascondi "Squadra" su mobile */}
+                          <th
+                            className="d-none d-md-table-cell"
+                            style={{ width: "90px" }}
+                          >
+                            Squadra
+                          </th>
+                          {/* Nascondi "Punti" su mobile */}
+                          <th
+                            className="d-none d-md-table-cell"
+                            style={{ width: "60px" }}
+                          >
+                            Punti
+                          </th>
+                          {/* Nascondi "Bonus" su mobile */}
+                          <th
+                            className="d-none d-md-table-cell"
+                            style={{ width: "75px" }}
+                          >
+                            Bonus
+                          </th>
+                          <th style={{ width: "85px" }}>Totale</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...classificaLega]
+                          .sort(
+                            (a, b) =>
+                              calcolaPuntiSquadra(b.piloti, classificaPiloti) -
+                              calcolaPuntiSquadra(a.piloti, classificaPiloti)
+                          )
+                          .map((entry, idx) => (
+                            <tr
+                              key={entry.teamId || entry.nome + entry.squadra}
                             >
-                              {Array.isArray(entry.piloti)
-                                ? calcolaPuntiSquadra(
-                                    entry.piloti,
-                                    classificaPiloti
-                                  )
-                                : "—"}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                              <td>{idx + 1}</td>
+                              <td className="text-nowrap">{entry.nome}</td>
+                              {/* Squadra: visibile solo su tablet/desktop */}
+                              <td className="text-nowrap d-none d-md-table-cell">
+                                {entry.squadra}
+                              </td>
+                              {/* Punti: visibile solo su tablet/desktop */}
+                              <td
+                                className="d-none d-md-table-cell"
+                                style={{ fontWeight: "bold", color: "#ffd200" }}
+                              >
+                                {Array.isArray(entry.piloti)
+                                  ? calcolaPuntiSquadra(
+                                      entry.piloti,
+                                      classificaPiloti
+                                    )
+                                  : "—"}
+                              </td>
+                              {/* Bonus: visibile solo su tablet/desktop */}
+                              <td className="d-none d-md-table-cell">
+                                <input
+                                  type="number"
+                                  value={bonusMalus[entry.teamId] ?? 0}
+                                  onChange={(e) =>
+                                    setBonusMalus((prev) => ({
+                                      ...prev,
+                                      [entry.teamId]: Number(e.target.value),
+                                    }))
+                                  }
+                                  style={{
+                                    width: 50,
+                                    textAlign: "center",
+                                    fontSize: "0.95em",
+                                    padding: "2px 5px",
+                                  }}
+                                />
+                              </td>
+                              {/* Totale: sempre visibile */}
+                              <td
+                                style={{ fontWeight: "bold", color: "#00ff80" }}
+                              >
+                                {Array.isArray(entry.piloti)
+                                  ? calcolaPuntiSquadra(
+                                      entry.piloti,
+                                      classificaPiloti
+                                    ) + (bonusMalus[entry.teamId] ?? 0)
+                                  : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
+
               {/* Form invito giocatore */}
               {showInviteForm && createdLeague && (
                 <Form onSubmit={handleInvitePlayer} className="mt-3">

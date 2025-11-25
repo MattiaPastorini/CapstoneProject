@@ -81,6 +81,7 @@ function HomePage() {
                     <th>Pos</th>
                     <th>Pilota</th>
                     <th>Punti</th>
+                    <th>Bonus/Malus</th>
                   </tr>
                 </thead>
                 <tbody>

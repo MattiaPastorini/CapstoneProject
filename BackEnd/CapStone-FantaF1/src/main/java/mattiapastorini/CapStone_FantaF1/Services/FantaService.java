@@ -126,6 +126,12 @@ public class FantaService {
         Optional<Lega> optLega = legaRepository.findByCodiceInvito(code);
         if (optLega.isPresent()) {
             Lega lega = optLega.get();
+
+            // CONTROLLO MAX 6 GIOCATORI
+            if (lega.getMembers().size() >= 6) {
+                throw new IllegalStateException("Numero massimo di giocatori raggiunto per questa lega!");
+            }
+
             User user = userRepository.findById(userId).orElseThrow();
             if (userHasLeague(user)) return false;
             lega.getMembers().add(user);                // AGGIUNGI
