@@ -7,17 +7,22 @@ function Classifica() {
     data: "dopo GP Brasile 2025",
     scuderie: [
       { nome: "McLaren", punti: 756 },
-      { nome: "Mercedes", punti: 398 },
-      { nome: "Red Bull", punti: 366 },
-      { nome: "Ferrari", punti: 362 },
-      { nome: "Williams", punti: 111 },
+      { nome: "Mercedes", punti: 431 },
+      { nome: "Red Bull", punti: 391 },
+      { nome: "Ferrari", punti: 378 },
+      { nome: "Williams", punti: 121 },
+      { nome: "Racing Bulls", punti: 90 },
+      { nome: "Haas", punti: 73 },
       { nome: "Aston Martin", punti: 72 },
-      { nome: "Racing Bulls", punti: 72 },
-      { nome: "Haas", punti: 62 },
-      { nome: "Kick Sauber", punti: 60 },
-      { nome: "Alpine", punti: 21 },
+      { nome: "Kick Sauber", punti: 68 },
+      { nome: "Alpine", punti: 22 },
     ],
   };
+
+  const ordinati = [...classificaCostruttori.scuderie].sort(
+    (a, b) => b.punti - a.punti
+  );
+  console.log(ordinati);
 
   const classificaPiloti = {
     classifica: "piloti",
@@ -25,26 +30,30 @@ function Classifica() {
     piloti: [
       { nome: "Lando Norris", team: "McLaren", punti: 390 },
       { nome: "Oscar Piastri", team: "McLaren", punti: 366 },
-      { nome: "Max Verstappen", team: "Red Bull", punti: 341 },
-      { nome: "George Russell", team: "Mercedes", punti: 276 },
-      { nome: "Charles Leclerc", team: "Ferrari", punti: 214 },
-      { nome: "Lewis Hamilton", team: "Ferrari", punti: 148 },
-      { nome: "Andrea Kimi Antonelli", team: "Mercedes", punti: 122 },
+      { nome: "Max Verstappen", team: "Red Bull", punti: 366 },
+      { nome: "George Russell", team: "Mercedes", punti: 294 },
+      { nome: "Charles Leclerc", team: "Ferrari", punti: 226 },
+      { nome: "Lewis Hamilton", team: "Ferrari", punti: 152 },
+      { nome: "Andrea Kimi Antonelli", team: "Mercedes", punti: 137 },
       { nome: "Alexander Albon", team: "Williams", punti: 73 },
-      { nome: "Nico Hulkenberg", team: "Sauber", punti: 43 },
-      { nome: "Isack Hadjar", team: "Racing Bulls", punti: 43 },
+      { nome: "Nico Hulkenberg", team: "Sauber", punti: 49 },
+      { nome: "Isack Hadjar", team: "Racing Bulls", punti: 51 },
       { nome: "Fernando Alonso", team: "Aston Martin", punti: 40 },
-      { nome: "Oliver Bearman", team: "Haas", punti: 40 },
-      { nome: "Carlos Sainz", team: "Williams", punti: 38 },
+      { nome: "Oliver Bearman", team: "Haas", punti: 41 },
+      { nome: "Carlos Sainz", team: "Williams", punti: 48 },
       { nome: "Liam Lawson", team: "Racing Bulls", punti: 36 },
       { nome: "Lance Stroll", team: "Aston Martin", punti: 32 },
-      { nome: "Esteban Ocon", team: "Haas", punti: 30 },
+      { nome: "Esteban Ocon", team: "Haas", punti: 32 },
       { nome: "Yuki Tsunoda", team: "Red Bull", punti: 28 },
       { nome: "Pierre Gasly", team: "Alpine", punti: 22 },
       { nome: "Gabriel Bortoleto", team: "Sauber", punti: 19 },
       { nome: "Franco Colapinto", team: "Alpine", punti: 0 },
     ],
   };
+  const ordinato = [...classificaPiloti.piloti].sort(
+    (a, b) => b.punti - a.punti
+  );
+  console.log(ordinato);
 
   return (
     <>
@@ -69,7 +78,7 @@ function Classifica() {
                     </tr>
                   </thead>
                   <tbody>
-                    {classificaPiloti.piloti.map((pilota, idx) => (
+                    {ordinato.map((pilota, idx) => (
                       <tr key={pilota.nome}>
                         <td>{idx + 1}</td>
                         <td>{pilota.nome}</td>
@@ -100,7 +109,7 @@ function Classifica() {
                     </tr>
                   </thead>
                   <tbody>
-                    {classificaCostruttori.scuderie.map((team, idx) => (
+                    {ordinati.map((team, idx) => (
                       <tr key={team.nome}>
                         <td>{idx + 1}</td>
                         <td>{team.nome}</td>
