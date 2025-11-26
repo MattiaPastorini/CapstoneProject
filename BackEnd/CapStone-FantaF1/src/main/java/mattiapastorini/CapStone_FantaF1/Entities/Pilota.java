@@ -18,6 +18,8 @@ public class Pilota {
     private String nome;
     @Column(name = "Scuderia", nullable = false)
     private String scuderia;
+    @Column(name = "Punti")
+    private Integer punti;
 
     @ManyToMany(mappedBy = "piloti")
     private Set<Team> teams = new HashSet<>();

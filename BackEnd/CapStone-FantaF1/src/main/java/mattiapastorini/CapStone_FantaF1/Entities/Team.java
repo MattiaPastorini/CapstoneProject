@@ -31,6 +31,12 @@ public class Team {
     )
     private Set<Pilota> piloti = new HashSet<>();
 
+    @Column(name = "punti_totali")
+    private Integer puntiTotali;
+
+    @Column(name = "bonus_malus")
+    private Integer bonusMalus;
+
 
     @ManyToOne
     private Lega lega; // ogni Team appartiene a una lega

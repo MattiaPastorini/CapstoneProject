@@ -67,6 +67,16 @@ public class FantaController {
         return new TeamResponsePayload(teamAggiornato); // usa il tuo payload, NON restituire entity pura
     }
 
+    // PUT per aggiornare punti totali e bonus/malus
+    @PutMapping("/team/{teamId}/totale")
+    public Team updateTeamTotale(@PathVariable Long teamId, @RequestBody UpdatePointsRequest req) {
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        team.setPuntiTotali(req.getPuntiTotali());
+        team.setBonusMalus(req.getBonusMalus());
+        teamRepository.save(team);
+        return team;
+    }
+
 
     // Crea una lega
     @PostMapping("/lega/creazione")
@@ -98,17 +108,13 @@ public class FantaController {
         return lega.getMembers().stream()
                 .map(user -> {
                     Team team = teamRepository.findByPresidentAndLega(user, lega);
-                    int punti = (team != null) ? team.getPunti() : 0;
                     Map<String, Object> entry = new HashMap<>();
                     entry.put("nome", user.getUsername());
                     entry.put("squadra", team != null ? team.getName() : "");
-                    entry.put("punti", punti);
-                    if (team != null && team.getPiloti() != null) {
-                        entry.put("piloti", team.getPiloti().stream().map(Pilota::getId).toList());
-                        entry.put("teamId", team.getId());
-                    } else {
-                        entry.put("piloti", List.of());
-                    }
+                    entry.put("bonusMalus", team != null && team.getBonusMalus() != null ? team.getBonusMalus() : 0);
+                    entry.put("puntiTotali", team != null && team.getPuntiTotali() != null ? team.getPuntiTotali() : (team != null ? team.getPunti() : 0));
+                    entry.put("teamId", team != null ? team.getId() : null);
+                    entry.put("piloti", team != null && team.getPiloti() != null ? team.getPiloti().stream().map(Pilota::getId).toList() : List.of());
                     return entry;
                 })
                 .collect(Collectors.toList());

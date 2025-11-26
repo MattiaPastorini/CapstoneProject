@@ -12,7 +12,7 @@ import {
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Questa è la classifica piloti reale
+// Classifica piloti reale
 const classificaPiloti = {
   piloti: [
     { nome: "Lando Norris", punti: 390 },
@@ -37,23 +37,6 @@ const classificaPiloti = {
     { nome: "Franco Colapinto", punti: 0 },
   ],
 };
-function calcolaPuntiSquadra(pilotiSelezionati, classificaPiloti) {
-  if (!pilotiSelezionati || !Array.isArray(pilotiSelezionati)) return 0;
-  if (!classificaPiloti || !classificaPiloti.piloti) return 0;
-  return pilotiSelezionati.reduce((tot, pilotaId) => {
-    if (pilotaId == null) return tot; // evita valori null o undefined nel reduce
-    const pilotaObj = fascePiloti
-      .flatMap((f) => f.piloti)
-      .find((p) => p.id === pilotaId);
-    if (!pilotaObj) return tot;
-    const pilotaClassifica = classificaPiloti.piloti.find(
-      (p) => p.nome === pilotaObj.nome
-    );
-    return tot + (pilotaClassifica ? pilotaClassifica.punti : 0);
-  }, 0);
-}
-
-// Array fasce piloti statico
 const fascePiloti = [
   {
     fascia: "PRIMA FASCIA",
@@ -91,7 +74,21 @@ const fascePiloti = [
     ],
   },
 ];
-
+function calcolaPuntiSquadra(pilotiSelezionati, classificaPiloti) {
+  if (!pilotiSelezionati || !Array.isArray(pilotiSelezionati)) return 0;
+  if (!classificaPiloti || !classificaPiloti.piloti) return 0;
+  return pilotiSelezionati.reduce((tot, pilotaId) => {
+    if (pilotaId == null) return tot;
+    const pilotaObj = fascePiloti
+      .flatMap((f) => f.piloti)
+      .find((p) => p.id === pilotaId);
+    if (!pilotaObj) return tot;
+    const pilotaClassifica = classificaPiloti.piloti.find(
+      (p) => p.nome === pilotaObj.nome
+    );
+    return tot + (pilotaClassifica ? pilotaClassifica.punti : 0);
+  }, 0);
+}
 const getLoggedUserId = () => localStorage.getItem("userId");
 const authHeaders = () => ({
   "Content-Type": "application/json",
@@ -116,16 +113,50 @@ function Team() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteUsername, setInviteUsername] = useState("");
   const [classificaLega, setClassificaLega] = useState([]);
-  const [bonusMalus, setBonusMalus] = useState({}); // {teamId: valore}
+  const [bonusMalus, setBonusMalus] = useState({});
 
-  // const [editPunti, setEditPunti] = useState({}); // Oggetto con chiave teamId
-  // const [editingTeamId, setEditingTeamId] = useState(null);
+  // FUNZIONE fetch classifica, richiamabile ovunque
+  const fetchClassifica = () => {
+    if (createdLeague && createdLeague.id) {
+      fetch(`http://localhost:3002/api/lega/classifica/${createdLeague.id}`, {
+        headers: authHeaders(),
+        credentials: "include",
+      })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          setClassificaLega(data);
+          if (Array.isArray(data)) {
+            const bm = data.reduce((acc, t) => {
+              acc[t.teamId] = t.bonusMalus ?? 0;
+              return acc;
+            }, {});
+            setBonusMalus(bm);
+          }
+        });
+    }
+  };
 
-  // Fetch team/lega/classifica all'avvio
+  // Aggiorna bonus/malus e totale su backend e aggiorna la classifica subito
+  const handleUpdateBonusMalus = (teamId, bonus) => {
+    const team = classificaLega.find((t) => t.teamId === teamId);
+    const puntiPiloti = calcolaPuntiSquadra(team.piloti, classificaPiloti);
+    const puntiTotali = puntiPiloti + bonus;
+    fetch(`http://localhost:3002/api/team/${teamId}/totale`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ puntiTotali, bonusMalus: bonus }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setBonusMalus((prev) => ({ ...prev, [teamId]: bonus }));
+        fetchClassifica(); // Aggiorna subito
+      });
+  };
+
+  // Fetch team/lega all'avvio
   useEffect(() => {
     const userId = getLoggedUserId();
     if (!userId) return;
-    // Squadra
     fetch(`http://localhost:3002/api/team/utente/${userId}`, {
       headers: authHeaders(),
       credentials: "include",
@@ -133,12 +164,9 @@ function Team() {
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          console.log("Debug: createdTeam ricevuto dal backend:", data[0]);
-
           setCreatedTeam(data[0]);
         }
       });
-    // Lega
     fetch(`http://localhost:3002/api/lega/utente/${userId}`, {
       headers: authHeaders(),
       credentials: "include",
@@ -152,25 +180,13 @@ function Team() {
       });
   }, []);
 
-  // Classifica lega (autoaggiornamento ogni 15s)
+  // Fetch classifica lega ogni 15s, ma la funzione può essere richiamata anche a mano
   useEffect(() => {
     let timer;
-    function fetchClassifica() {
-      if (createdLeague && createdLeague.id) {
-        fetch(`http://localhost:3002/api/lega/classifica/${createdLeague.id}`, {
-          headers: authHeaders(),
-          credentials: "include",
-        })
-          .then((res) => (res.ok ? res.json() : []))
-          .then((data) => {
-            console.log("Classifica Lega:", data); // <-- METTILO QUI!
-            setClassificaLega(data);
-          });
-      }
-    }
     fetchClassifica();
     timer = setInterval(fetchClassifica, 15000);
     return () => clearInterval(timer);
+    // eslint-disable-next-line
   }, [createdLeague?.id]);
 
   const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
@@ -196,8 +212,22 @@ function Team() {
       }),
     })
       .then((res) => res.json())
-      .then((data) => {
-        setCreatedTeam(data);
+      .then((_data) => {
+        setShowTeamForm(false);
+        setTeamName("");
+        setPilotiSelezionati([null, null, null]);
+        fetchClassifica(); // Aggiorna subito la classifica
+        // --- PATCH: appena creata la squadra, ottieni il team trasformato dal backend
+        fetch(`http://localhost:3002/api/team/utente/${loggedUserId}`, {
+          headers: authHeaders(),
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((teams) => {
+            if (Array.isArray(teams) && teams.length > 0) {
+              setCreatedTeam(teams[0]);
+            }
+          });
       })
       .catch((error) => setMessage("Errore creazione team", error));
   };
@@ -251,7 +281,6 @@ function Team() {
   };
 
   const handleDeleteTeam = () => {
-    // Check robusto su team/id
     if (!createdTeam || !createdTeam.id) {
       setMessage("Errore: squadra non trovata o già eliminata.");
       return;
@@ -273,7 +302,6 @@ function Team() {
   };
 
   const handleDeleteLeague = () => {
-    // Check robusto su lega/id
     if (!createdLeague || !createdLeague.id) {
       setMessage("Errore: lega non trovata o già eliminata.");
       return;
@@ -299,37 +327,10 @@ function Team() {
     });
   };
 
-  // -- AGGIORNA PUNTI TEAM dalla classifica --
-  // const handleEditPunti = (teamId) => {
-  //   setEditingTeamId(teamId);
-  //   setEditPunti("");
-  // };
-
-  // const handleSavePunti = (teamId) => {
-  //   if (!editPunti || isNaN(editPunti)) {
-  //     setMessage("Inserisci un numero valido.");
-  //     return;
-  //   }
-  //   fetch(`http://localhost:3002/api/team/${teamId}/punti`, {
-  //     method: "PUT",
-  //     headers: authHeaders(),
-  //     body: JSON.stringify({ punti: parseInt(editPunti) }),
-  //   })
-  //     .then((res) => res.json())
-  //     .then(() => {
-  //       setEditingTeamId(null);
-  //       setEditPunti("");
-  //       setMessage("Punti aggiornati!");
-  //     })
-  //     .catch((error) => setMessage("Errore aggiornamento punti", error));
-  // };
-
-  //MODIFICA E SALVA PUNTI
-
-  // --- RENDER ---
   return (
     <div className="container py-5 text-center">
       <Row className="g-4 mb-5">
+        {/* CARD LEGA */}
         <Col xs={12} sm={12} lg={7}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body className="bg-dark text-light rounded-4">
@@ -397,115 +398,116 @@ function Team() {
                 </div>
               )}
 
-              {/* MOSTRA CLASSIFICA LEGA F1 */}
+              {/* CLASSIFICA LEGA */}
               {createdLeague && classificaLega.length > 0 && (
                 <div className="mt-4">
                   <h4 style={{ color: "#fff", fontWeight: "bold" }}>
                     Classifica Lega
                   </h4>
-                  <div className="table-responsive">
-                    <table
-                      className="table table-dark table-striped my-3 mx-auto"
-                      style={{
-                        fontSize: "0.93em",
-                        maxWidth: "100%",
-                        tableLayout: "fixed",
-                      }}
-                    >
-                      <thead>
-                        <tr>
-                          <th style={{ width: "35px" }}>Pos</th>
-                          <th style={{ width: "90px" }}>Nome</th>
-                          {/* Nascondi "Squadra" su mobile */}
-                          <th
-                            className="d-none d-md-table-cell"
-                            style={{ width: "90px" }}
-                          >
-                            Squadra
-                          </th>
-                          {/* Nascondi "Punti" su mobile */}
-                          <th
-                            className="d-none d-md-table-cell"
-                            style={{ width: "60px" }}
-                          >
-                            Punti
-                          </th>
-                          {/* Nascondi "Bonus" su mobile */}
-                          <th
-                            className="d-none d-md-table-cell"
-                            style={{ width: "75px" }}
-                          >
-                            Bonus
-                          </th>
-                          <th style={{ width: "85px" }}>Totale</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...classificaLega]
-                          .sort(
-                            (a, b) =>
-                              calcolaPuntiSquadra(b.piloti, classificaPiloti) +
-                              (bonusMalus[b.teamId] ?? 0) -
-                              (calcolaPuntiSquadra(a.piloti, classificaPiloti) +
-                                (bonusMalus[a.teamId] ?? 0))
-                          )
-                          .map((entry, idx) => (
-                            <tr
-                              key={entry.teamId || entry.nome + entry.squadra}
+                  <table
+                    className="table table-dark table-striped my-3 mx-auto"
+                    style={{
+                      fontSize: "0.93em",
+                      maxWidth: "100%",
+                      tableLayout: "fixed",
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        <th style={{ width: "35px" }}>Pos</th>
+                        <th style={{ width: "90px" }}>Nome</th>
+                        <th
+                          className="d-none d-md-table-cell"
+                          style={{ width: "90px" }}
+                        >
+                          Squadra
+                        </th>
+                        <th
+                          className="d-none d-md-table-cell"
+                          style={{ width: "60px" }}
+                        >
+                          Punti
+                        </th>
+                        <th
+                          className="d-none d-md-table-cell"
+                          style={{ width: "75px" }}
+                        >
+                          Bonus
+                        </th>
+                        <th style={{ width: "85px" }}>Totale</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...classificaLega]
+                        .sort(
+                          (a, b) =>
+                            (typeof b.puntiTotali === "number"
+                              ? b.puntiTotali
+                              : calcolaPuntiSquadra(
+                                  b.piloti,
+                                  classificaPiloti
+                                ) + (bonusMalus[b.teamId] ?? 0)) -
+                            (typeof a.puntiTotali === "number"
+                              ? a.puntiTotali
+                              : calcolaPuntiSquadra(
+                                  a.piloti,
+                                  classificaPiloti
+                                ) + (bonusMalus[a.teamId] ?? 0))
+                        )
+                        .map((entry, idx) => (
+                          <tr key={entry.teamId || entry.nome + entry.squadra}>
+                            <td>{idx + 1}</td>
+                            <td className="text-nowrap">{entry.nome}</td>
+                            <td className="text-nowrap d-none d-md-table-cell">
+                              {entry.squadra}
+                            </td>
+                            <td
+                              className="d-none d-md-table-cell"
+                              style={{ fontWeight: "bold", color: "#ffd200" }}
                             >
-                              <td>{idx + 1}</td>
-                              <td className="text-nowrap">{entry.nome}</td>
-                              {/* Squadra: visibile solo su tablet/desktop */}
-                              <td className="text-nowrap d-none d-md-table-cell">
-                                {entry.squadra}
-                              </td>
-                              {/* Punti: visibile solo su tablet/desktop */}
-                              <td
-                                className="d-none d-md-table-cell"
-                                style={{ fontWeight: "bold", color: "#ffd200" }}
-                              >
-                                {Array.isArray(entry.piloti)
-                                  ? calcolaPuntiSquadra(
-                                      entry.piloti,
-                                      classificaPiloti
-                                    )
-                                  : "—"}
-                              </td>
-                              {/* Bonus: visibile solo su tablet/desktop */}
-                              <td className="d-none d-md-table-cell">
-                                <input
-                                  type="number"
-                                  value={bonusMalus[entry.teamId] ?? 0}
-                                  onChange={(e) =>
-                                    setBonusMalus((prev) => ({
-                                      ...prev,
-                                      [entry.teamId]: Number(e.target.value),
-                                    }))
-                                  }
-                                  style={{
-                                    width: 50,
-                                    textAlign: "center",
-                                    fontSize: "0.95em",
-                                    padding: "2px 5px",
-                                  }}
-                                />
-                              </td>
-                              {/* Totale: sempre visibile */}
-                              <td
-                                style={{ fontWeight: "bold", color: "#00ff80" }}
-                              >
-                                {Array.isArray(entry.piloti)
-                                  ? calcolaPuntiSquadra(
-                                      entry.piloti,
-                                      classificaPiloti
-                                    ) + (bonusMalus[entry.teamId] ?? 0)
-                                  : "—"}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              {Array.isArray(entry.piloti)
+                                ? calcolaPuntiSquadra(
+                                    entry.piloti,
+                                    classificaPiloti
+                                  )
+                                : "—"}
+                            </td>
+                            <td className="d-none d-md-table-cell">
+                              <input
+                                type="number"
+                                value={
+                                  bonusMalus[entry.teamId] ??
+                                  entry.bonusMalus ??
+                                  0
+                                }
+                                onChange={(e) =>
+                                  handleUpdateBonusMalus(
+                                    entry.teamId,
+                                    Number(e.target.value)
+                                  )
+                                }
+                                style={{
+                                  width: 50,
+                                  textAlign: "center",
+                                  fontSize: "0.95em",
+                                  padding: "2px 5px",
+                                }}
+                              />
+                            </td>
+                            <td
+                              style={{ fontWeight: "bold", color: "#00ff80" }}
+                            >
+                              {typeof entry.puntiTotali === "number"
+                                ? entry.puntiTotali
+                                : calcolaPuntiSquadra(
+                                    entry.piloti,
+                                    classificaPiloti
+                                  ) + (bonusMalus[entry.teamId] ?? 0)}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
 
@@ -547,6 +549,7 @@ function Team() {
             </Card.Body>
           </Card>
         </Col>
+
         {/* ----------- CARD TEAM -------------- */}
         <Col xs={12} sm={12} lg={5}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
@@ -580,7 +583,6 @@ function Team() {
                       Crea
                     </Button>
                   </InputGroup>
-                  {/* Selezione piloti */}
                   <div className="mb-3 d-flex flex-column">
                     <p>
                       <b>Scegli un pilota per ogni fascia:</b>
@@ -621,7 +623,6 @@ function Team() {
                   </div>
                 </Form>
               )}
-              {/* Visualizzazione squadra creata */}
               {createdTeam && (
                 <div className="mt-3">
                   <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
@@ -647,12 +648,11 @@ function Team() {
                             style={{ fontWeight: "bold", fontSize: "1.2em" }}
                           >
                             {fascePiloti[idx].fascia}: <br />
-                          </span>{" "}
+                          </span>
                           {pilota ? pilota.nome : "Non selezionato"}
                         </div>
                       );
                     })}
-                  {/* AGGIUNGI QUI IL DISPLAY DEI PUNTI AUTOMATICI */}
                   <div
                     className="mt-3"
                     style={{
@@ -677,7 +677,6 @@ function Team() {
           </Card>
         </Col>
       </Row>
-      {/* Messaggi di feedback */}
       {message && <div className="alert alert-info mt-3">{message}</div>}
     </div>
   );

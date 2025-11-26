@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 function Classifica() {
   const classificaCostruttori = {
     classifica: "costruttori",
-    data: "dopo GP Brasile 2025",
+    data: "dopo GP Las Vegas 2025",
     scuderie: [
       { nome: "McLaren", punti: 756 },
       { nome: "Mercedes", punti: 431 },
@@ -26,7 +26,7 @@ function Classifica() {
 
   const classificaPiloti = {
     classifica: "piloti",
-    data: "dopo GP Brasile 2025",
+    data: "dopo GP Las Vegas 2025",
     piloti: [
       { nome: "Lando Norris", team: "McLaren", punti: 390 },
       { nome: "Oscar Piastri", team: "McLaren", punti: 366 },

@@ -11,18 +11,23 @@ function HomePage() {
   const classificaPiloti = [
     { nome: "Lando Norris", team: "McLaren", punti: 390 },
     { nome: "Oscar Piastri", team: "McLaren", punti: 366 },
-    { nome: "Max Verstappen", team: "Red Bull", punti: 341 },
-    { nome: "George Russell", team: "Mercedes", punti: 276 },
-    { nome: "Charles Leclerc", team: "Ferrari", punti: 214 },
+    { nome: "Max Verstappen", team: "Red Bull", punti: 366 },
+    { nome: "George Russell", team: "Mercedes", punti: 294 },
+    { nome: "Charles Leclerc", team: "Ferrari", punti: 226 },
+    { nome: "Lewis Hamilton", team: "Ferrari", punti: 152 },
   ];
 
   const classificaCostruttori = [
     { nome: "McLaren", punti: 756 },
-    { nome: "Mercedes", punti: 398 },
-    { nome: "Red Bull", punti: 366 },
-    { nome: "Ferrari", punti: 362 },
-    { nome: "Williams", punti: 111 },
+    { nome: "Mercedes", punti: 431 },
+    { nome: "Red Bull", punti: 391 },
+    { nome: "Ferrari", punti: 378 },
+    { nome: "Williams", punti: 121 },
+    { nome: "Racing Bulls", punti: 90 },
   ];
+
+  // QUI inutile: i bonus/malus sono già compresi in puntiTotali dal backend!
+  // const [bonusMalus, setBonusMalus] = useState({});
 
   // Classifica Lega
   const [classificaLega, setClassificaLega] = useState([]);
@@ -81,7 +86,6 @@ function HomePage() {
                     <th>Pos</th>
                     <th>Pilota</th>
                     <th>Punti</th>
-                    <th>Bonus/Malus</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -124,11 +128,18 @@ function HomePage() {
                       {[...classificaLega]
                         .sort(
                           (a, b) =>
-                            calcolaPuntiSquadra(
-                              b.piloti,
-                              classificaPilotiFanta
-                            ) -
-                            calcolaPuntiSquadra(a.piloti, classificaPilotiFanta)
+                            (typeof b.puntiTotali === "number"
+                              ? b.puntiTotali
+                              : calcolaPuntiSquadra(
+                                  b.piloti,
+                                  classificaPilotiFanta
+                                )) -
+                            (typeof a.puntiTotali === "number"
+                              ? a.puntiTotali
+                              : calcolaPuntiSquadra(
+                                  a.piloti,
+                                  classificaPilotiFanta
+                                ))
                         )
                         .slice(0, 5)
                         .map((entry, i) => (
@@ -137,7 +148,9 @@ function HomePage() {
                             <td>{entry.nome}</td>
                             <td>{entry.squadra}</td>
                             <td>
-                              {Array.isArray(entry.piloti)
+                              {typeof entry.puntiTotali === "number"
+                                ? entry.puntiTotali
+                                : Array.isArray(entry.piloti)
                                 ? calcolaPuntiSquadra(
                                     entry.piloti,
                                     classificaPilotiFanta

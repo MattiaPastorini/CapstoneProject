@@ -65,9 +65,14 @@ public class FantaService {
             p.getTeams().add(team);
         }
 
+
+        // === PATCH AGGIUNTA: CALCOLO PUNTI PILOTI E INIZIALIZZAZIONE puntiTotali ===
+        int puntiPiloti = piloti.stream().mapToInt(p -> p.getPunti() != null ? p.getPunti() : 0).sum();
+        team.setPuntiTotali(puntiPiloti); // IMPOSTA SUBITO puntiTotali
+        team.setBonusMalus(0); // opzionale: all'inizio nessun bonus/malus
+
         return teamRepository.save(team);
     }
-
 
     // QUERY AGGIORNATA: piloti sono caricati già nella entity grazie al JOIN FETCH, niente concurrent!
     public List<Team> getTeamsByPresident(Long userId) {
@@ -75,7 +80,6 @@ public class FantaService {
         if (president == null) return List.of();
         return teamRepository.findByPresidentWithPiloti(president);
     }
-
 
     // Crea lega
     public Lega creazioneLega(String name, Long presidentId) {
@@ -120,7 +124,6 @@ public class FantaService {
         return true;
     }
 
-
     // Join tramite codice invito
     public boolean partecipazioneAllaLega(String code, Long userId) {
         Optional<Lega> optLega = legaRepository.findByCodiceInvito(code);
@@ -140,7 +143,6 @@ public class FantaService {
         }
         return false;
     }
-
 
     private boolean userHasLeague(User user) {
         return legaRepository.findByMembers_Id(user.getId()) != null
@@ -180,19 +182,19 @@ public class FantaService {
         legaRepository.deleteById(legaId);
     }
 
-
-//      Aggiorna i punti di una squadra
-//
-//      @param teamId id del team da aggiornare
-//      @param nuoviPunti nuovo punteggio da assegnare
-//      @return il team aggiornato
-
     @Transactional
     public Team aggiornaPuntiTeam(Long teamId, int nuoviPunti) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team non trovato!"));
         team.setPunti(nuoviPunti);
         return teamRepository.save(team); // restituisce l'entità aggiornata
+    }
+
+    public Team aggiornaTotali(Long teamId, Integer puntiTotali, Integer bonusMalus) {
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        team.setPuntiTotali(puntiTotali);
+        team.setBonusMalus(bonusMalus);
+        return teamRepository.save(team);
     }
 
 }
