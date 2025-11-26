@@ -115,7 +115,6 @@ function Team() {
   const [classificaLega, setClassificaLega] = useState([]);
   const [bonusMalus, setBonusMalus] = useState({});
 
-  // FUNZIONE fetch classifica, richiamabile ovunque
   const fetchClassifica = () => {
     if (createdLeague && createdLeague.id) {
       fetch(`http://localhost:3002/api/lega/classifica/${createdLeague.id}`, {
@@ -136,7 +135,6 @@ function Team() {
     }
   };
 
-  // Aggiorna bonus/malus e totale su backend e aggiorna la classifica subito
   const handleUpdateBonusMalus = (teamId, bonus) => {
     const team = classificaLega.find((t) => t.teamId === teamId);
     const puntiPiloti = calcolaPuntiSquadra(team.piloti, classificaPiloti);
@@ -149,11 +147,10 @@ function Team() {
       .then((res) => res.json())
       .then(() => {
         setBonusMalus((prev) => ({ ...prev, [teamId]: bonus }));
-        fetchClassifica(); // Aggiorna subito
+        fetchClassifica();
       });
   };
 
-  // Fetch team/lega all'avvio
   useEffect(() => {
     const userId = getLoggedUserId();
     if (!userId) return;
@@ -180,13 +177,11 @@ function Team() {
       });
   }, []);
 
-  // Fetch classifica lega ogni 15s, ma la funzione può essere richiamata anche a mano
   useEffect(() => {
     let timer;
     fetchClassifica();
     timer = setInterval(fetchClassifica, 15000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line
   }, [createdLeague?.id]);
 
   const onPilotaFasciaToggle = (fasciaIdx, pilotaId) => {
@@ -197,7 +192,6 @@ function Team() {
     });
   };
 
-  // CREAZIONE TEAM
   const handleCreateTeam = (e) => {
     e.preventDefault();
     const loggedUserId = Number(getLoggedUserId());
@@ -216,8 +210,7 @@ function Team() {
         setShowTeamForm(false);
         setTeamName("");
         setPilotiSelezionati([null, null, null]);
-        fetchClassifica(); // Aggiorna subito la classifica
-        // --- PATCH: appena creata la squadra, ottieni il team trasformato dal backend
+        fetchClassifica();
         fetch(`http://localhost:3002/api/team/utente/${loggedUserId}`, {
           headers: authHeaders(),
           credentials: "include",
@@ -232,7 +225,6 @@ function Team() {
       .catch((error) => setMessage("Errore creazione team", error));
   };
 
-  // CREAZIONE LEGA
   const handleCreateLeague = (e) => {
     e.preventDefault();
     const loggedUserId = getLoggedUserId();
@@ -252,7 +244,6 @@ function Team() {
       .catch((error) => setMessage("Errore creazione lega", error));
   };
 
-  // INVITO GIOCATORE
   const handleInvitePlayer = async (e) => {
     e.preventDefault();
     if (!legaCreataId) {
@@ -361,7 +352,6 @@ function Team() {
                   </Button>
                 </OverlayTrigger>
               </div>
-              {/* Form creazione lega */}
               {showLeagueForm && (
                 <Form onSubmit={handleCreateLeague} className="mt-3">
                   <InputGroup>
@@ -382,7 +372,6 @@ function Team() {
                   </InputGroup>
                 </Form>
               )}
-              {/* Visualizzazione lega creata */}
               {createdLeague && (
                 <div className="mt-3">
                   <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
@@ -397,8 +386,6 @@ function Team() {
                   )}
                 </div>
               )}
-
-              {/* CLASSIFICA LEGA */}
               {createdLeague && classificaLega.length > 0 && (
                 <div className="mt-4">
                   <h4 style={{ color: "#fff", fontWeight: "bold" }}>
@@ -510,8 +497,6 @@ function Team() {
                   </table>
                 </div>
               )}
-
-              {/* Form invito giocatore */}
               {showInviteForm && createdLeague && (
                 <Form onSubmit={handleInvitePlayer} className="mt-3">
                   <InputGroup>
@@ -534,7 +519,6 @@ function Team() {
                   </InputGroup>
                 </Form>
               )}
-              {/* Bottone elimina in fondo */}
               {createdLeague && (
                 <div className="d-flex justify-content-center mt-4">
                   <Button
@@ -550,7 +534,7 @@ function Team() {
           </Card>
         </Col>
 
-        {/* ----------- CARD TEAM -------------- */}
+        {/* CARD TEAM */}
         <Col xs={12} sm={12} lg={5}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body className="bg-dark text-light rounded-4">
@@ -645,7 +629,10 @@ function Team() {
                           style={{ fontSize: "1.2em", marginBottom: "4px" }}
                         >
                           <span
-                            style={{ fontWeight: "bold", fontSize: "1.2em" }}
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "1.2em",
+                            }}
                           >
                             {fascePiloti[idx].fascia}: <br />
                           </span>
@@ -677,6 +664,87 @@ function Team() {
           </Card>
         </Col>
       </Row>
+
+      {/* PATCH: Card squadre altri partecipanti della lega */}
+      {createdLeague && classificaLega.length > 1 && (
+        <div className="mt-5">
+          <h3 style={{ fontWeight: "bold", color: "#fffffdff" }}>
+            Squadre degli altri partecipanti
+          </h3>
+          <Row className="justify-content-center mt-4 g-4">
+            {classificaLega
+              .filter(
+                (entry) => String(entry.teamId) !== String(createdTeam?.id)
+              )
+              .map((entry) => (
+                <Col xs={12} md={6} lg={4} key={entry.teamId || entry.nome}>
+                  <Card className="shadow-sm rounded-4 bg-dark text-light mb-3">
+                    <Card.Body>
+                      <h5
+                        className="mb-2"
+                        style={{ color: "#d40202ff", fontWeight: "bold" }}
+                      >
+                        {entry.squadra || "Squadra senza nome"}
+                      </h5>
+                      <p
+                        className="mb-1"
+                        style={{ fontWeight: "bold", color: "#fff" }}
+                      >
+                        Presidente:{" "}
+                        <span style={{ color: "#ffd200" }}>{entry.nome}</span>
+                      </p>
+                      <div className="mb-2">
+                        <b>Piloti scelti:</b>
+                        {Array.isArray(entry.piloti) &&
+                        entry.piloti.length > 0 ? (
+                          <>
+                            {entry.piloti.map((id, idx) => {
+                              const pilota = fascePiloti[idx]?.piloti.find(
+                                (p) => p.id === id
+                              );
+                              return (
+                                <div
+                                  key={id}
+                                  style={{
+                                    fontSize: "0.98em",
+                                    marginBottom: 3,
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontWeight: "bold",
+                                      color: "#ff2f2fff",
+                                    }}
+                                  >
+                                    {fascePiloti[idx]?.fascia}:
+                                  </span>{" "}
+                                  {pilota ? pilota.nome : "Non selezionato"}
+                                </div>
+                              );
+                            })}
+                          </>
+                        ) : (
+                          <div>Nessun pilota selezionato</div>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          fontWeight: "bold",
+                          color: "#ffd200",
+                          marginTop: "5px",
+                        }}
+                      >
+                        Punti squadra:{" "}
+                        {calcolaPuntiSquadra(entry.piloti, classificaPiloti)}
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+          </Row>
+        </div>
+      )}
+
       {message && <div className="alert alert-info mt-3">{message}</div>}
     </div>
   );
