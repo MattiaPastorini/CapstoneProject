@@ -42,8 +42,6 @@ function NavBar() {
             .then((res) => res.json())
             .then((data) => setNotifications(data));
           // PATCH: Aggiorna lo stato della lega/team dopo invito accettato
-          // Soluzione robusta: Forza il refresh della pagina, così tutte le componenti si aggiornano
-          // -- oppure richiama manualmente fetchLeague/fetchClassifica se hai sollevato stato/props context
           setTimeout(() => {
             window.location.reload(); // ricarica tutto (semplice e sicuro, aggiorna tutto)
           }, 500); // leggero delay per avere feedback messaggio
