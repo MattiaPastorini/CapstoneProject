@@ -137,12 +137,20 @@ public class FantaService {
 
             User user = userRepository.findById(userId).orElseThrow();
             if (userHasLeague(user)) return false;
-            lega.getMembers().add(user);                // AGGIUNGI
-            legaRepository.save(lega);                  // SALVA LA LEGA
+            lega.getMembers().add(user);
+            legaRepository.save(lega);
+
+            // PATCH: marca l'invito come accettato
+            invitoRepository.findByLegaIdAndUserIdAndAcceptedFalse(lega.getId(), userId).ifPresent(invito -> {
+                invito.setAccepted(true);
+                invitoRepository.save(invito);
+            });
+
             return true;
         }
         return false;
     }
+
 
     private boolean userHasLeague(User user) {
         return legaRepository.findByMembers_Id(user.getId()) != null

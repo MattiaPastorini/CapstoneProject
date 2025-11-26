@@ -8,6 +8,7 @@ import mattiapastorini.CapStone_FantaF1.Services.FantaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -200,6 +201,34 @@ public class FantaController {
             mappa.put("accepted", invito.isAccepted());
             return mappa;
         }).collect(Collectors.toList());
+    }
+
+    // Esce dalla lega: il partecipante viene rimosso dalla lista dei membri
+    @DeleteMapping("/lega/uscita/{legaId}/utente/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uscitaDaLega(@PathVariable Long legaId, @PathVariable Long userId) {
+        Lega lega = legaRepository.findById(legaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        lega.getMembers().removeIf(user -> user.getId().equals(userId));
+        legaRepository.save(lega);
+    }
+
+    // Elimina la lega: solo il presidente può farlo!
+    @DeleteMapping("/lega/elimina/{legaId}/presidente/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaLegaDaOwner(@PathVariable Long legaId, @PathVariable Long userId) {
+        Lega lega = legaRepository.findById(legaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        if (!lega.getPresident().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo il creatore può eliminare la lega!");
+        }
+        // Prima elimina tutte le squadre della lega!
+        List<Team> teams = teamRepository.findByLega(lega);
+        for (Team t : teams) {
+            teamRepository.delete(t);
+        }
+        lega.getMembers().clear();
+        legaRepository.deleteById(legaId);
     }
 
 

@@ -74,6 +74,7 @@ const fascePiloti = [
     ],
   },
 ];
+
 function calcolaPuntiSquadra(pilotiSelezionati, classificaPiloti) {
   if (!pilotiSelezionati || !Array.isArray(pilotiSelezionati)) return 0;
   if (!classificaPiloti || !classificaPiloti.piloti) return 0;
@@ -114,6 +115,7 @@ function Team() {
   const [inviteUsername, setInviteUsername] = useState("");
   const [classificaLega, setClassificaLega] = useState([]);
   const [bonusMalus, setBonusMalus] = useState({});
+  const [presidentId, setPresidentId] = useState(null);
 
   const fetchClassifica = () => {
     if (createdLeague && createdLeague.id) {
@@ -164,6 +166,7 @@ function Team() {
           setCreatedTeam(data[0]);
         }
       });
+
     fetch(`http://localhost:3002/api/lega/utente/${userId}`, {
       headers: authHeaders(),
       credentials: "include",
@@ -173,6 +176,7 @@ function Team() {
         if (data && data.name) {
           setCreatedLeague(data);
           setLegaCreataId(data.id);
+          if (data.president) setPresidentId(data.president.id);
         }
       });
   }, []);
@@ -240,6 +244,7 @@ function Team() {
       .then((data) => {
         setCreatedLeague(data);
         setLegaCreataId(data.id);
+        if (data.president) setPresidentId(data.president.id);
       })
       .catch((error) => setMessage("Errore creazione lega", error));
   };
@@ -292,30 +297,55 @@ function Team() {
     });
   };
 
-  const handleDeleteLeague = () => {
-    if (!createdLeague || !createdLeague.id) {
-      setMessage("Errore: lega non trovata o già eliminata.");
-      return;
+  // PATCH owner/partecipante
+  const handleDeleteOrLeaveLeague = () => {
+    const isOwner =
+      presidentId && Number(getLoggedUserId()) === Number(presidentId);
+    if (isOwner) {
+      fetch(
+        `http://localhost:3002/api/lega/elimina/${
+          createdLeague.id
+        }/presidente/${getLoggedUserId()}`,
+        {
+          method: "DELETE",
+          headers: authHeaders(),
+        }
+      ).then((res) => {
+        if (res.ok) {
+          setCreatedLeague(null);
+          setLeagueName("");
+          setLegaCreataId(null);
+          setShowLeagueForm(false);
+          setShowInviteForm(false);
+          setMessage("Lega eliminata!");
+        } else {
+          setMessage(
+            "Errore nell'eliminazione della lega. Controlla che non ci siano team associati!"
+          );
+        }
+      });
+    } else {
+      fetch(
+        `http://localhost:3002/api/lega/uscita/${
+          createdLeague.id
+        }/utente/${getLoggedUserId()}`,
+        {
+          method: "DELETE",
+          headers: authHeaders(),
+        }
+      ).then((res) => {
+        if (res.ok) {
+          setCreatedLeague(null);
+          setLeagueName("");
+          setLegaCreataId(null);
+          setShowLeagueForm(false);
+          setShowInviteForm(false);
+          setMessage("Uscito dalla lega!");
+        } else {
+          setMessage("Errore nell'uscita dalla lega.");
+        }
+      });
     }
-    fetch(`http://localhost:3002/api/lega/elimina/${createdLeague.id}`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    }).then((res) => {
-      if (res.ok) {
-        setCreatedLeague(null);
-        setLeagueName("");
-        setLegaCreataId(null);
-        setShowLeagueForm(false);
-        setShowInviteForm(false);
-        setMessage("Lega eliminata!");
-      } else if (res.status === 500) {
-        setMessage(
-          "Errore lato server nell'eliminazione della lega. Verifica che la lega non abbia team ancora associati."
-        );
-      } else {
-        setMessage("Errore nell'eliminazione della lega.");
-      }
-    });
   };
 
   return (
@@ -374,9 +404,9 @@ function Team() {
               )}
               {createdLeague && (
                 <div className="mt-3">
-                  <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
+                  <h3 style={{ fontWeight: "bold", color: "#d40202ff" }}>
                     {createdLeague.name}
-                  </h5>
+                  </h3>
                   {createdLeague.codiceInvito && (
                     <div style={{ margin: "10px 0" }}>
                       <span>
@@ -413,13 +443,13 @@ function Team() {
                           className="d-none d-md-table-cell"
                           style={{ width: "60px" }}
                         >
-                          Punti
+                          Punti piloti
                         </th>
                         <th
                           className="d-none d-md-table-cell"
                           style={{ width: "75px" }}
                         >
-                          Bonus
+                          Bonus/Malus
                         </th>
                         <th style={{ width: "85px" }}>Totale</th>
                       </tr>
@@ -524,16 +554,18 @@ function Team() {
                   <Button
                     variant="outline-danger"
                     size="lg"
-                    onClick={handleDeleteLeague}
+                    onClick={handleDeleteOrLeaveLeague}
                   >
-                    Elimina/Esci dalla lega
+                    {presidentId &&
+                    Number(getLoggedUserId()) === Number(presidentId)
+                      ? "Elimina lega"
+                      : "Esci dalla lega"}
                   </Button>
                 </div>
               )}
             </Card.Body>
           </Card>
         </Col>
-
         {/* CARD TEAM */}
         <Col xs={12} sm={12} lg={5}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
@@ -609,9 +641,9 @@ function Team() {
               )}
               {createdTeam && (
                 <div className="mt-3">
-                  <h5 style={{ fontWeight: "bold", color: "#d40202ff" }}>
+                  <h3 style={{ fontWeight: "bold", color: "#d40202ff" }}>
                     {createdTeam.name}
-                  </h5>
+                  </h3>
                   <h6
                     className="mt-2"
                     style={{ color: "#ffffffff", fontWeight: "bold" }}
@@ -640,7 +672,7 @@ function Team() {
                         </div>
                       );
                     })}
-                  <div
+                  {/* <div
                     className="mt-3"
                     style={{
                       fontWeight: "bold",
@@ -648,9 +680,9 @@ function Team() {
                       color: "#ffd200",
                     }}
                   >
-                    Punti squadra:{" "}
+                    Punti piloti:{" "}
                     {calcolaPuntiSquadra(createdTeam.piloti, classificaPiloti)}
-                  </div>
+                  </div> */}
                   <Button
                     variant="outline-danger"
                     className="mt-3"
@@ -727,16 +759,17 @@ function Team() {
                           <div>Nessun pilota selezionato</div>
                         )}
                       </div>
-                      <div
-                        style={{
-                          fontWeight: "bold",
-                          color: "#ffd200",
-                          marginTop: "5px",
-                        }}
-                      >
-                        Punti squadra:{" "}
-                        {calcolaPuntiSquadra(entry.piloti, classificaPiloti)}
-                      </div>
+                      {/* <div
+                    className="mt-3"
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: "1.3em",
+                      color: "#ffd200",
+                    }}
+                  >
+                    Punti piloti:{" "}
+                    {calcolaPuntiSquadra(createdTeam.piloti, classificaPiloti)}
+                  </div> */}
                     </Card.Body>
                   </Card>
                 </Col>

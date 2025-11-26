@@ -34,7 +34,19 @@ function NavBar() {
       .then((data) => {
         if (data.success) {
           setMessage("Hai accettato l'invito!");
-          setNotifications((prev) => prev.filter((n) => n.id !== invitoId));
+          // Aggiorna le notifiche (così la notifica scompare dall'elenco)
+          fetch(`http://localhost:3002/api/notifiche/${userId}`, {
+            headers: authHeaders(),
+            credentials: "include",
+          })
+            .then((res) => res.json())
+            .then((data) => setNotifications(data));
+          // PATCH: Aggiorna lo stato della lega/team dopo invito accettato
+          // Soluzione robusta: Forza il refresh della pagina, così tutte le componenti si aggiornano
+          // -- oppure richiama manualmente fetchLeague/fetchClassifica se hai sollevato stato/props context
+          setTimeout(() => {
+            window.location.reload(); // ricarica tutto (semplice e sicuro, aggiorna tutto)
+          }, 500); // leggero delay per avere feedback messaggio
         } else {
           setMessage(data.message || "Errore nell'accettazione.");
         }
