@@ -1,0 +1,235 @@
+package mattiapastorini.CapStone_FantaF1.Controller;
+
+import mattiapastorini.CapStone_FantaF1.Entities.*;
+import mattiapastorini.CapStone_FantaF1.Exceptions.*;
+import mattiapastorini.CapStone_FantaF1.Payloads.*;
+import mattiapastorini.CapStone_FantaF1.Repositories.*;
+import mattiapastorini.CapStone_FantaF1.Services.FantaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api")
+public class FantaController {
+    @Autowired
+    private FantaService fantaService;
+    @Autowired
+    private TeamRepository teamRepository;
+
+    @Autowired
+    private LegaRepository legaRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PilotaRepository pilotaRepository;
+
+    @Autowired
+    private InvitoRepository invitoRepository;
+
+
+    // Crea una squadra
+    @PostMapping("/team/creazione")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Team creazioneTeam(@RequestBody TeamDTO teamDTO) {
+        Team creato = fantaService.creazioneTeam(teamDTO.name(), teamDTO.presidentId(), teamDTO.piloti(), teamDTO.legaId());
+        return creato;
+    }
+
+    // Restituisce la squadra associata al presidentId passato
+    @GetMapping("/team/utente/{userId}")
+    public List<TeamResponsePayload> getTeamsByUser(@PathVariable Long userId) {
+        List<Team> teams = fantaService.getTeamsByPresident(userId);
+        return teams.stream()
+                .map(TeamResponsePayload::new)
+                .toList();
+    }
+
+
+//      Aggiorna i punti di una squadra col metodo PUT
+//      Esempio chiamata: PUT /api/team/123/punti con body { "punti": 85 }
+
+    @PutMapping("/team/{teamId}/punti")
+    public TeamResponsePayload aggiornaPuntiTeam(
+            @PathVariable Long teamId,
+            @RequestBody Map<String, Integer> body) {
+        if (!body.containsKey("punti"))
+            throw new IllegalArgumentException("Body deve contenere il campo 'punti'");
+        int nuoviPunti = body.get("punti");
+        Team teamAggiornato = fantaService.aggiornaPuntiTeam(teamId, nuoviPunti);
+        return new TeamResponsePayload(teamAggiornato); // usa il tuo payload, NON restituire entity pura
+    }
+
+    // PUT per aggiornare punti totali e bonus/malus
+    @PutMapping("/team/{teamId}/totale")
+    public Team updateTeamTotale(@PathVariable Long teamId, @RequestBody UpdatePointsRequest req) {
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        team.setPuntiTotali(req.getPuntiTotali());
+        team.setBonusMalus(req.getBonusMalus());
+        teamRepository.save(team);
+        return team;
+    }
+
+
+    // Crea una lega
+    @PostMapping("/lega/creazione")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Lega creazioneLega(@RequestBody LegaDTO legaDTO) {
+        Lega creata = fantaService.creazioneLega(legaDTO.name(), legaDTO.presidentId());
+        return creata;
+    }
+
+    //    @GetMapping("/lega/classifica/{legaId}")
+//    public List<Map<String, Object>> getClassificaLega(@PathVariable Long legaId) {
+//        Lega lega = legaRepository.findById(legaId).orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+//        // Per ogni membro, prendi nome, nome squadra, punti!
+//        return lega.getMembers().stream()
+//                .map(user -> {
+//                    Team team = teamRepository.findByPresidentAndLega(user, lega);
+//                    int punti = (team != null) ? team.getPunti() : 0; // supponendo che Team abbia un campo 'punti'
+//                    Map<String, Object> entry = new HashMap<>();
+//                    entry.put("nome", user.getUsername());
+//                    entry.put("squadra", team != null ? team.getName() : "");
+//                    entry.put("punti", punti);
+//                    return entry;
+//                })
+//                .collect(Collectors.toList());
+//    }
+    @GetMapping("/lega/classifica/{legaId}")
+    public List<Map<String, Object>> getClassificaLega(@PathVariable Long legaId) {
+        Lega lega = legaRepository.findById(legaId).orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        return lega.getMembers().stream()
+                .map(user -> {
+                    Team team = teamRepository.findByPresidentAndLega(user, lega);
+                    Map<String, Object> entry = new HashMap<>();
+                    entry.put("nome", user.getUsername());
+                    entry.put("squadra", team != null ? team.getName() : "");
+                    entry.put("bonusMalus", team != null && team.getBonusMalus() != null ? team.getBonusMalus() : 0);
+                    entry.put("puntiTotali", team != null && team.getPuntiTotali() != null ? team.getPuntiTotali() : (team != null ? team.getPunti() : 0));
+                    entry.put("teamId", team != null ? team.getId() : null);
+                    entry.put("piloti", team != null && team.getPiloti() != null ? team.getPiloti().stream().map(Pilota::getId).toList() : List.of());
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    // Invita un amico a una lega (per email o username)
+    @PostMapping("/lega/invito")
+    public MessaggioDTO invito(@RequestBody InvitoDTO invitoDTO) {
+        boolean ok = fantaService.invitoAllaLega(invitoDTO.legaId(), invitoDTO.username(), invitoDTO.email());
+        String msg = ok ? "Invitato! Ora puoi accettare per entrare nella lega." : "Utente non trovato";
+        return new MessaggioDTO(ok, msg);
+    }
+
+    // Un utente entra in lega tramite codice invito
+    @PostMapping("/lega/partecipazione")
+    public MessaggioDTO partecipazione(@RequestBody PartecipazioneAllaLegaDTO partecipazioneAllaLegaDTO) {
+        boolean ok = fantaService.partecipazioneAllaLega(partecipazioneAllaLegaDTO.codiceInvito(), partecipazioneAllaLegaDTO.userId());
+        String msg = ok ? "Entrato!" : "Lega non trovata o già membro";
+        return new MessaggioDTO(ok, msg);
+    }
+
+
+    @GetMapping("/lega/utente/{userId}")
+    public Lega getLeagueByMember(@PathVariable Long userId) {
+        Lega lega = fantaService.getLegaByUserId(userId);
+        if (lega != null) {
+            return lega;
+        } else {
+            throw new ResourceNotFoundException("Lega non trovata per userId: " + userId);
+        }
+    }
+
+    @GetMapping("/team/utente/{userId}/lega/{legaId}")
+    public Map<String, Object> getTeamByUserAndLeague(@PathVariable Long userId, @PathVariable Long legaId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Lega lega = legaRepository.findById(legaId).orElseThrow();
+        Team team = teamRepository.findByPresidentAndLega(user, lega);
+        if (team == null)
+            return null; // oppure puoi lanciare una exception custom se preferisci
+        Map<String, Object> result = Map.of(
+                "name", team.getName(),
+                "piloti", team.getPiloti().stream().map(Pilota::getId).toList(),
+                "lega", team.getLega().getName(),
+                "legaId", team.getLega().getId()
+        );
+        return result;
+    }
+
+
+    @DeleteMapping("/team/elimina/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaTeam(@PathVariable Long id) {
+        if (teamRepository.existsById(id)) {
+            teamRepository.deleteById(id);
+
+        }
+    }
+
+    @DeleteMapping("/lega/elimina/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaLega(@PathVariable Long id) {
+
+        if (legaRepository.existsById(id)) {
+            legaRepository.deleteById(id);
+
+        }
+    }
+
+    //  NOTIFICHE INVITI LEGA
+    @GetMapping("/notifiche/{userId}")
+    public List<Map<String, Object>> getInvitiLega(@PathVariable Long userId) {
+        List<Invito> inviti = invitoRepository.findByUserIdAndAcceptedFalse(userId);
+
+        return inviti.stream().map(invito -> {
+            Map<String, Object> mappa = new HashMap<>();
+            mappa.put("id", invito.getId());
+            mappa.put("legaId", invito.getLegaId());
+            // Recupera la lega e inserisci codiceInvito
+            legaRepository.findById(invito.getLegaId()).ifPresent(lega ->
+                    mappa.put("codiceInvito", lega.getCodiceInvito()));
+            mappa.put("message", invito.getMessage());
+            mappa.put("accepted", invito.isAccepted());
+            return mappa;
+        }).collect(Collectors.toList());
+    }
+
+    // Esce dalla lega: il partecipante viene rimosso dalla lista dei membri
+    @DeleteMapping("/lega/uscita/{legaId}/utente/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void uscitaDaLega(@PathVariable Long legaId, @PathVariable Long userId) {
+        Lega lega = legaRepository.findById(legaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        lega.getMembers().removeIf(user -> user.getId().equals(userId));
+        legaRepository.save(lega);
+    }
+
+    // Elimina la lega: solo il presidente può farlo!
+    @DeleteMapping("/lega/elimina/{legaId}/presidente/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminaLegaDaOwner(@PathVariable Long legaId, @PathVariable Long userId) {
+        Lega lega = legaRepository.findById(legaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lega non trovata"));
+        if (!lega.getPresident().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo il creatore può eliminare la lega!");
+        }
+        // Prima elimina tutte le squadre della lega!
+        List<Team> teams = teamRepository.findByLega(lega);
+        for (Team t : teams) {
+            teamRepository.delete(t);
+        }
+        lega.getMembers().clear();
+        legaRepository.deleteById(legaId);
+    }
+
+
+}

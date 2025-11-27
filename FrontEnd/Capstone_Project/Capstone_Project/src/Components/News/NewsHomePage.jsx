@@ -5,13 +5,11 @@ function NewsHomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const res = await fetch(
-          `https://newsapi.org/v2/everything?q="Formula 1"+OR+F1&language=it&sortBy=publishedAt&apiKey=e2ae0109de144950874a96d53319c148`
-        );
-        const data = await res.json();
-
+    fetch(
+      `https://newsapi.org/v2/everything?q="Formula 1"+OR+F1&language=it&sortBy=publishedAt&apiKey=e2ae0109de144950874a96d53319c148`
+    )
+      .then((res) => res.json())
+      .then((data) => {
         if (data.articles) {
           // Filtra articoli pertinenti a F1
           const filtered = data.articles.filter(
@@ -32,15 +30,14 @@ function NewsHomePage() {
         } else {
           setArticles([]);
         }
-      } catch (err) {
+      })
+      .catch((err) => {
         console.error("Errore nel fetch delle notizie:", err);
         setArticles([]);
-      } finally {
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-
-    fetchNews();
+      });
   }, []);
 
   if (loading) {
@@ -74,7 +71,6 @@ function NewsHomePage() {
               )}
               <div className="card-body d-flex flex-column">
                 <h5 className="card-title">{article.title}</h5>
-
                 <p className="card-text">{article.description}</p>
                 <a
                   href={article.url}

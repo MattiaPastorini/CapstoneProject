@@ -32,7 +32,7 @@ function Regolamento() {
       <h1 className=" text-light mb-4">REGOLAMENTO</h1>
       <Row className="g-4 mb-4 d-flex justify-content-between">
         {/* CARD 1 */}
-        <Col xs={12} sm={6} lg={3}>
+        <Col xs={12} sm={6} lg={6}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
               <h2>Manche</h2>
@@ -45,7 +45,7 @@ function Regolamento() {
         </Col>
 
         {/* CARD 2 */}
-        <Col xs={12} sm={6} lg={3}>
+        <Col xs={12} sm={6} lg={6}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
               <h2>Creazione Team</h2>
@@ -56,7 +56,7 @@ function Regolamento() {
           </Card>
         </Col>
 
-        {/* CARD 3 */}
+        {/* CARD 3
         <Col xs={12} sm={6} lg={3}>
           <Card className="h-100 shadow-sm d-flex justify-content-center rounded-4 bg-transparent">
             <Card.Body className="bg-dark text-light text-decoration-none rounded-4">
@@ -66,7 +66,7 @@ function Regolamento() {
               </p>
             </Card.Body>
           </Card>
-        </Col>
+        </Col> */}
       </Row>
       {/* BONUS/MALUS */}
       <Row className="g-4 mb-5">

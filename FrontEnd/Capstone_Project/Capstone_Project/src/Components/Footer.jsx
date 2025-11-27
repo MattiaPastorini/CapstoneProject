@@ -5,78 +5,72 @@ import "../App.css";
 
 function Footer() {
   return (
-    <footer
-      className="bg-dark text-light pb-3 pt-4 mt-3"
-      style={{ borderTop: "1px solid #444" }}
-    >
+    <footer className="bg-dark text-light pb-3 pt-4 mt-4">
       <Container>
         <Row className="text-center text-md-start">
           {/* Colonna 1: Link principali */}
           <Col xs={12} md={4} className="mb-3">
-            <h5 className="mb-2 text-center">Link utili</h5>
+            <h5 className="mb-2 text-center">
+              <i className="bi bi-link me-1"></i>Link utili
+            </h5>
             <Nav className="flex-column text-center">
               <Nav.Link
                 as={Link}
                 to="/"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Home
+                <i className="bi bi-house me-1"></i>Home
               </Nav.Link>
+
               <Nav.Link
                 as={Link}
-                to="/regolamento"
+                to="/news"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Regolamento
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/Notizie"
-                className="text-secondary link-light p-0 mb-1"
-              >
-                Notizie
+                <i className="bi bi-newspaper me-1"></i>Notizie
               </Nav.Link>
             </Nav>
           </Col>
 
           {/* Colonna 2: Altro */}
           <Col xs={12} md={4} className="mb-3">
-            <h5 className="mb-2 text-center">Sezioni</h5>
+            <h5 className="mb-2 text-center">
+              <i className="bi bi-controller me-1"></i>Fanta
+            </h5>
             <Nav className="flex-column text-center">
               <Nav.Link
                 as={Link}
                 to="/team"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Team
+                <i className="bi bi-people me-1"></i>Team
               </Nav.Link>
               <Nav.Link
                 as={Link}
-                to="/ClassificaPiloti"
+                to="/classifiche"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Classifica Piloti
+                <i className="bi bi-trophy me-1"></i>Classifica
               </Nav.Link>
               <Nav.Link
                 as={Link}
-                to="/ClassificaCostruttori"
+                to="/regolamento"
                 className="text-secondary link-light p-0 mb-1"
               >
-                Classifica Costruttori
+                <i className="bi bi-file-earmark-text me-1"></i>Regolamento
               </Nav.Link>
             </Nav>
           </Col>
 
           {/* Colonna 3: Contatti */}
           <Col xs={12} md={4} className="mb-3">
-            <h5 className="mb-2 text-center">Contatti</h5>
+            <h5 className="mb-2 text-center">
+              <i className="bi bi-journal me-1"></i>Contatti
+            </h5>
             <p className="mb-1 text-light text-center">
-              <a
-                href="#"
-                className="text-decoration-none text-secondary link-light"
-              >
-                pandafunclub@bamboo.com
-              </a>
+              <span className="text-decoration-none text-secondary mb-0">
+                <i className="bi bi-envelope me-2"></i>mattia.862002@gmail.com
+              </span>
             </p>
             <p className="mb-0 text-center">
               <a
@@ -85,7 +79,7 @@ function Footer() {
                 rel="noopener noreferrer"
                 className="text-decoration-none text-secondary link-light"
               >
-                @matti862
+                <i className="bi bi-instagram me-2"></i>@matti862
               </a>
             </p>
           </Col>
